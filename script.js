@@ -8,15 +8,18 @@ if (themeBtn) {
     let isDark = savedTheme === 'dark';
 
     // Apply initial state
+    // Apply initial state
     if (isDark) {
         document.documentElement.setAttribute('data-theme', 'dark');
-        icon.className = 'fa-solid fa-sun';
+        icon.className = 'fa-solid fa-moon'; // Dark mode -> Show Moon representing current state
+    } else {
+        icon.className = 'fa-solid fa-sun'; // Light mode -> Show Sun
     }
 
     themeBtn.addEventListener('click', () => {
         isDark = !isDark;
         document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-        icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        icon.className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
     });
 }
@@ -550,6 +553,47 @@ const renderReactBadge = () => {
         ReactDOM.render(pill, reactRoot);
     }
 };
+
+// 8. Live Status React Component
+const LiveStatusWidget = () => {
+    const [index, setIndex] = React.useState(0);
+    const statuses = [
+        { text: 'Available for Work', icon: 'fa-briefcase' },
+        { text: 'Based in Poland', icon: 'fa-location-dot' },
+        { text: '3D Artist', icon: 'fa-cube' }
+    ];
+
+    React.useEffect(() => {
+        const interval = setInterval(() => {
+            setIndex((prev) => (prev + 1) % statuses.length);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const current = statuses[index];
+
+    return React.createElement(
+        'div',
+        { className: 'badge fade-in', key: index }, // key triggers animation
+        React.createElement('i', { className: `fa-solid ${current.icon}`, style: { marginRight: '8px' } }),
+        current.text
+    );
+};
+
+const renderLiveStatus = () => {
+    const rootEl = document.getElementById('react-status-root');
+    if (!rootEl) return;
+
+    if (ReactDOM.createRoot) {
+        ReactDOM.createRoot(rootEl).render(React.createElement(LiveStatusWidget));
+    }
+};
+
+// Initialize React components
+window.addEventListener('load', () => {
+    renderLiveStatus();
+    renderReactBadge();
+});
 const setLanguage = (lang) => {
     currentLang = normalizeLang(lang);
     localStorage.setItem('lang', currentLang);
@@ -777,59 +821,100 @@ window.addEventListener('load', () => {
     requestAnimationFrame(handleScroll);
 });
 
-// 7. Custom Cursor Follow
-if (!('ontouchstart' in window) && !document.querySelector('.cursor-dot')) {
-    const cursorDot = document.createElement('div');
-    const cursorRing = document.createElement('div');
-    cursorDot.className = 'cursor-dot';
-    cursorRing.className = 'cursor-ring';
-    document.body.appendChild(cursorDot);
-    document.body.appendChild(cursorRing);
+// 7. Custom Cursor Follow (Removed)
 
-    let mouseX = window.innerWidth / 2;
-    let mouseY = window.innerHeight / 2;
-    let ringX = mouseX;
-    let ringY = mouseY;
-    let isVisible = false;
+// 9. Projects Carousel Logic
+const track = document.querySelector('.carousel-track');
+const container = document.querySelector('.carousel-track-container');
 
-    const updateVisibility = (visible) => {
-        const opacity = visible ? '1' : '0';
-        cursorDot.style.opacity = opacity;
-        cursorRing.style.opacity = visible ? '0.6' : '0';
+if (track && container) {
+    const slides = Array.from(track.children);
+    const nextButton = document.querySelector('.next-btn');
+    const prevButton = document.querySelector('.prev-btn');
+
+    let currentSlideIndex = 1; // Start at 2nd item (center in 3 items)
+
+    const updateSlidePosition = () => {
+        const slideWidth = slides[0].getBoundingClientRect().width;
+        const containerWidth = container.getBoundingClientRect().width;
+
+        // Perfect centering: position the active slide so its center aligns with container center
+        // Formula: move left by (currentIndex * slideWidth), then adjust by half container minus half slide
+        const offset = (containerWidth / 2) - (slideWidth / 2);
+        const newTranslateX = -(currentSlideIndex * slideWidth) + offset;
+
+        track.style.transform = `translateX(${newTranslateX}px)`;
+
+        // Update active class
+        slides.forEach((slide, index) => {
+            if (index === currentSlideIndex) {
+                slide.classList.add('active-center');
+            } else {
+                slide.classList.remove('active-center');
+            }
+        });
     };
 
-    window.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        cursorDot.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
-        if (!isVisible) {
-            isVisible = true;
-            updateVisibility(true);
+    const moveToSlide = (targetIndex) => {
+        // Infinite Loop Logic (visual)
+        if (targetIndex < 0) {
+            targetIndex = slides.length - 1;
+        } else if (targetIndex >= slides.length) {
+            targetIndex = 0;
         }
-    });
-
-    window.addEventListener('mouseout', (e) => {
-        if (!e.relatedTarget && !e.toElement) {
-            isVisible = false;
-            updateVisibility(false);
-        }
-    });
-
-    document.addEventListener('mouseover', (e) => {
-        const target = e.target;
-        const isInteractive = target.closest('a, button, .btn, .theme-toggle, input, textarea, select');
-        cursorDot.classList.toggle('is-active', Boolean(isInteractive));
-        cursorRing.classList.toggle('is-active', Boolean(isInteractive));
-    });
-
-    const animate = () => {
-        ringX += (mouseX - ringX) * 0.15;
-        ringY += (mouseY - ringY) * 0.15;
-        cursorRing.style.transform = `translate(${ringX}px, ${ringY}px)`;
-        requestAnimationFrame(animate);
+        currentSlideIndex = targetIndex;
+        updateSlidePosition();
     };
 
-    updateVisibility(false);
-    animate();
+    nextButton.addEventListener('click', () => {
+        moveToSlide(currentSlideIndex + 1);
+    });
+
+    prevButton.addEventListener('click', () => {
+        moveToSlide(currentSlideIndex - 1);
+    });
+
+    // Initial setup
+    // Wait a moment for layout to settle
+    setTimeout(updateSlidePosition, 100);
+    window.addEventListener('resize', updateSlidePosition);
 }
 
+// 7. Interactive Ambient Background (Proximity Light)
+const ambientShapes = document.querySelectorAll('.ambient-shape');
+let lightMouseX = 0;
+let lightMouseY = 0;
+let isLightFramePending = false;
+
+const updateAmbientLight = () => {
+    ambientShapes.forEach(shape => {
+        const rect = shape.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const distance = Math.hypot(lightMouseX - centerX, lightMouseY - centerY);
+        const maxDist = 900;
+        const baseOpacity = 0.5;
+        const maxOpacity = 1.0;
+
+        if (distance < maxDist) {
+            const proximity = 1 - (distance / maxDist);
+            const intensity = Math.pow(proximity, 1.5);
+            const extraOpacity = intensity * (maxOpacity - baseOpacity);
+            shape.style.opacity = baseOpacity + extraOpacity;
+        } else {
+            shape.style.opacity = baseOpacity;
+        }
+    });
+    isLightFramePending = false;
+};
+
+document.addEventListener('mousemove', (e) => {
+    lightMouseX = e.clientX;
+    lightMouseY = e.clientY;
+
+    if (!isLightFramePending) {
+        requestAnimationFrame(updateAmbientLight);
+        isLightFramePending = true;
+    }
+});

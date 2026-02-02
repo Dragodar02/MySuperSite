@@ -3,9 +3,12 @@
     --primary: #4f46e5;
     --primary-dark: #4338ca;
     --secondary: #ec4899;
-    --bg-1: #f8fafc;
-    --bg-2: #e2e8f0;
-    --surface: rgba(255, 255, 255, 0.7);
+    --bg-1: #f1f5f9;
+    /* Soft Slate 100 instead of pure white */
+    --bg-2: #cbd5e1;
+    /* Darker Slate 300 for contrast */
+    --surface: rgba(248, 250, 252, 0.8);
+    /* Slightly off-white surface */
     --surface-hover: rgba(255, 255, 255, 0.9);
     --text-main: #0f172a;
     --text-muted: #64748b;
@@ -33,32 +36,42 @@
     margin: 0;
     padding: 0;
     scroll-behavior: smooth;
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+    /* Remove mobile tap highlight */
+}
+
+/* Global Image Protection */
+img {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+    /* Optional: prevents right click interactions too if desired, but mainly for drag/select. Wait, if I use pointer-events: none, buttons inside images won't work? No, images are usually content. Checks if images need clicks. Avatar might need hover? */
+    pointer-events: auto;
+    /* Let's keep interactions mostly, but stop drag */
+}
+
+/* Ensure images don't get selected */
+img {
+    -webkit-user-drag: none;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
 }
 
 body {
     font-family: 'Outfit', sans-serif;
-    background: linear-gradient(-45deg, var(--bg-1), var(--bg-2), #1e1b4b, #312e81);
-    background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
+    background: var(--bg-1);
+    /* Solid background, no RGB/Gradient */
     color: var(--text-main);
     min-height: 100vh;
     overflow-x: hidden;
-    transition: color 0.5s ease;
+    transition: background-color 0.5s ease, color 0.5s ease;
     position: relative;
-}
-
-@keyframes gradientBG {
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
 }
 
 /* Ambient Background shapes */
@@ -69,47 +82,12 @@ body {
     z-index: -1;
     opacity: 0.5;
     animation: float 20s infinite alternate;
-    will-change: transform;
+    will-change: transform, opacity;
+    transition: opacity 0.1s ease-out;
+    /* Smooth lighting response */
 }
 
-/* Custom cursor */
-.cursor-dot,
-.cursor-ring {
-    position: fixed;
-    top: 0;
-    left: 0;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    z-index: 2000;
-}
 
-.cursor-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--primary);
-    box-shadow: 0 0 10px rgba(79, 70, 229, 0.6);
-}
-
-.cursor-ring {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 2px solid var(--primary);
-    opacity: 0.75;
-    box-shadow: 0 0 20px rgba(79, 70, 229, 0.35), 0 0 40px rgba(236, 72, 153, 0.2);
-    transition: opacity 0.2s ease;
-}
-
-.cursor-dot.is-active {
-    background: var(--secondary);
-    box-shadow: 0 0 12px rgba(236, 72, 153, 0.6);
-}
-
-.cursor-ring.is-active {
-    border-color: var(--secondary);
-    box-shadow: 0 0 24px rgba(236, 72, 153, 0.45), 0 0 48px rgba(79, 70, 229, 0.25);
-}
 
 .shape-1 {
     width: 500px;
@@ -127,6 +105,51 @@ body {
     bottom: -50px;
     right: -50px;
     animation-delay: -5s;
+}
+
+section h2,
+#projects h2 {
+    text-align: center !important;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+
+    /* Prevent selection */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    /* Animated Gradient */
+    background: linear-gradient(to right, var(--primary), var(--secondary), var(--primary));
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientText 5s linear infinite;
+}
+
+h1 {
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+
+    /* Animated Gradient (Unified) */
+    background: linear-gradient(to right, var(--primary), var(--secondary), var(--primary));
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientText 5s linear infinite;
+}
+
+@keyframes gradientText {
+    to {
+        background-position: 200% center;
+    }
 }
 
 @keyframes float {
@@ -359,13 +382,25 @@ h2 {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.35rem 0.9rem;
+    padding: 0.5rem 1.2rem;
     border-radius: 999px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    margin-bottom: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.badge:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary);
 }
 
 .cursor {
@@ -376,6 +411,7 @@ h2 {
 }
 
 @keyframes cursorBlink {
+
     0%,
     100% {
         opacity: 1;
@@ -442,6 +478,34 @@ h2 {
     }
 }
 
+.avatar-container-hero {
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    padding: 10px;
+    background: linear-gradient(45deg, var(--primary), var(--secondary));
+    box-shadow: var(--shadow);
+    animation: pulse 3s infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: box-shadow 0.3s ease;
+}
+
+.avatar-container-hero:hover {
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+}
+
+.hero-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    /* border: 5px solid var(--bg-1);  REMOVED inner border */
+    background-color: var(--bg-1);
+    /* Fallback */
+}
+
 h1 {
     font-size: 4rem;
     font-weight: 800;
@@ -467,6 +531,108 @@ h1 {
     margin-right: auto;
 }
 
+/* Navigation */
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    padding: 1.5rem 0;
+    transition: all 0.3s ease;
+    /* Optional: Add slight glass by default or only on scroll */
+    background: var(--surface);
+    /* Adaptive glass background */
+    backdrop-filter: blur(20px);
+    /* Stronger blur to block gradient interference */
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+}
+
+.nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 3rem;
+    margin: 0;
+    padding: 0;
+}
+
+/* Logo */
+.logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-main);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo i {
+    color: var(--primary);
+}
+
+.nav-links a {
+    color: var(--text-main);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1.1rem;
+    position: relative;
+    padding-bottom: 5px;
+    transition: color 0.3s;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary);
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: var(--primary);
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Hero Section */
+.hero {
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-top: 0;
+}
+
+.hero-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 4rem;
+}
+
 .btn-group {
     display: flex;
     gap: 1rem;
@@ -482,6 +648,11 @@ h1 {
     font-size: 1rem;
     border: 2px solid transparent;
     cursor: pointer;
+    user-select: none;
+    /* Prevent text highlighting */
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+    /* Prevent link dragging */
 }
 
 .btn-primary {
@@ -508,26 +679,139 @@ h1 {
     transform: translateY(-3px);
 }
 
+/* Standardized Glass Card */
+.skill-card,
+.project-card,
+.contact-container {
+    background: rgba(255, 255, 255, 0.03);
+    /* Subtle tint */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    /* Soft shadow */
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+        box-shadow 0.4s ease,
+        border-color 0.4s ease;
+}
+
+.skill-card:hover,
+.project-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+}
+
 /* Skills Section */
+/* Skills Specifics */
 .skills-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    /* Allows wrapping on smaller screens */
+    width: 100%;
+    justify-content: center;
+    /* Centers items in the row */
     gap: 2rem;
 }
 
 .skill-card {
-    background: var(--surface);
-    backdrop-filter: blur(10px);
-    padding: 2rem;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    transition: all 0.3s ease;
+    padding: 2.5rem;
+    /* More padding */
+    flex: 1 1 250px;
+    /* Grow, shrink, 250px base */
+    max-width: 350px;
+    /* Prevent them from getting too wide */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    /* Clean left align */
 }
 
-.skill-card:hover {
-    transform: translateY(-5px);
-    background: var(--surface-hover);
+/* Stats Section */
+#stats {
+    padding: 6rem 0;
+    position: relative;
+    z-index: 2;
+    /* Content above background shapes */
 }
+
+.stats-grid {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.stat-card {
+    flex: 1 1 250px;
+    max-width: 350px;
+    background: rgba(255, 255, 255, 0.02);
+    /* Very transparent */
+    backdrop-filter: blur(2px);
+    /* Minimal blur */
+    -webkit-backdrop-filter: blur(2px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+}
+
+/* Grid Pattern Overlay */
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Subtle grid pattern */
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.stat-content {
+    position: relative;
+    z-index: 1;
+}
+
+.stat-card h3 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
+}
+
+.stat-card p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Projects specific overrides handled by carousel layout */
+/* Removing old .project-card definition to avoid conflict if not careful,
+   but keeping internal structure styles */
+
 
 .skill-card i {
     font-size: 2.5rem;
@@ -557,28 +841,140 @@ h1 {
     transition: width 1.5s ease-out;
 }
 
-/* Projects Section */
-.projects-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+/* Projects Section - Carousel Rewrite */
+#projects {
+    text-align: center;
+    /* Ensure heading is centered */
 }
 
+.carousel-wrapper {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    /* Center the wrapper */
+    padding: 4rem 4rem;
+    perspective: 1000px;
+    overflow: visible;
+    /* Allow shadows to bleed out */
+}
+
+.carousel-track-container {
+    overflow: visible;
+    /* Let shadows/blur bleed out */
+    width: 100%;
+    padding: 4rem 0;
+    /* Increased vertical padding to 4rem */
+    /* Space for shadow/scale */
+}
+
+.carousel-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    /* Smooth eased */
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.carousel-slide {
+    min-width: 33.333%;
+    /* Show 3 items */
+    padding: 1rem;
+    box-sizing: border-box;
+    transition: all 0.5s ease;
+    opacity: 0.5;
+    transform: scale(0.85);
+    filter: blur(3px);
+    z-index: 1;
+}
+
+.carousel-slide.active-center {
+    opacity: 1;
+    transform: scale(1.1);
+    filter: blur(0);
+    z-index: 10;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    /* Heavy bokeh shadow simulation */
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--primary);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 20;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.prev-btn {
+    /* Absolute symmetry: Place center of button at 16.66% (center of left card) */
+    left: 16.666%;
+    right: auto;
+    transform: translate(-50%, -50%);
+}
+
+.next-btn {
+    /* Absolute symmetry: Place center of button at 83.33% (center of right card) */
+    left: 83.333%;
+    right: auto;
+    transform: translate(-50%, -50%);
+}
+
+@media (max-width: 1000px) {
+    .prev-btn {
+        left: 10%;
+    }
+
+    .next-btn {
+        left: 90%;
+    }
+}
+
+@media (max-width: 768px) {
+    .carousel-slide {
+        min-width: 100%;
+        /* Back to 1 item on mobile */
+        opacity: 1;
+        transform: scale(1);
+        filter: none;
+    }
+
+    .prev-btn {
+        left: 1rem;
+        transform: translateY(-50%);
+    }
+
+    .next-btn {
+        left: auto;
+        right: 1rem;
+        transform: translateY(-50%);
+    }
+}
+
+/* Ensure project cards inside slides fit well */
 .project-card {
     background: var(--surface);
     border-radius: 20px;
     overflow: hidden;
     border: 1px solid var(--border);
     transition: all 0.3s ease;
-}
-
-.project-card:hover {
-    transform: translateY(-10px);
-    box-shadow: var(--shadow);
+    height: 100%;
 }
 
 .project-img {
-    height: 200px;
+    height: 300px;
+    /* Made slightly taller for focus */
     background: var(--bg-2);
     position: relative;
     overflow: hidden;
@@ -867,8 +1263,15 @@ footer {
         align-items: center;
     }
 
-    .hero-img > div {
+    .hero-img>div {
         font-size: 9rem !important;
+        /* Keep for icons if any */
+    }
+
+    .avatar-container-hero {
+        width: 200px;
+        height: 200px;
+        margin: 0 auto;
     }
 
     section {
@@ -876,11 +1279,4 @@ footer {
     }
 
     /* Simplified for mobile, ideally would be a hamburger menu */
-}
-
-@media (hover: none), (prefers-reduced-motion: reduce) {
-    .cursor-dot,
-    .cursor-ring {
-        display: none;
-    }
 }
