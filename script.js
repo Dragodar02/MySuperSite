@@ -706,10 +706,16 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 const contactForm = document.getElementById('contactForm');
 if (contactForm) {
     contactForm.addEventListener('submit', (e) => {
-        e.preventDefault();
         const btn = e.target.querySelector('button');
         const originalText = btn.textContent;
 
+        if (contactForm.hasAttribute('data-netlify')) {
+            btn.textContent = t('form.sending');
+            btn.style.background = '#10b981'; // Success Green
+            return;
+        }
+
+        e.preventDefault();
         btn.textContent = t('form.sending');
         btn.style.background = '#10b981'; // Success Green
 
