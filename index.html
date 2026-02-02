@@ -211,20 +211,22 @@
                     </div>
                 </div>
 
-                <!-- 5. Form Submission (Mock) -->
-                <form id="contactForm">
+                <!-- 5. Contact Form (Netlify) -->
+                <form id="contactForm" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+                    <input type="hidden" name="bot-field">
                     <div class="form-group">
                         <label data-i18n="form.nameLabel">Ваше Ім'я</label>
-                        <input type="text" required placeholder="Іван Іванов" data-i18n-placeholder="form.namePlaceholder">
+                        <input type="text" name="name" required placeholder="Іван Іванов"
+                            data-i18n-placeholder="form.namePlaceholder">
                     </div>
                     <div class="form-group">
                         <label data-i18n="form.emailLabel">Email</label>
-                        <input type="email" required placeholder="ivan@example.com"
+                        <input type="email" name="email" required placeholder="ivan@example.com"
                             data-i18n-placeholder="form.emailPlaceholder">
                     </div>
                     <div class="form-group">
                         <label data-i18n="form.messageLabel">Повідомлення</label>
-                        <textarea rows="5" required placeholder="Розкажіть про ваш проєкт..."
+                        <textarea rows="5" name="message" required placeholder="Розкажіть про ваш проєкт..."
                             data-i18n-placeholder="form.messagePlaceholder"></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary" style="width: 100%;" data-i18n="form.submit">Надіслати</button>
