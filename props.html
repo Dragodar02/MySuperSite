@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hard Surface Props | Zakharii Stroich</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav id="navbar">
+        <div class="container nav-content">
+            <a href="index.html" class="logo"><i class="fa-solid fa-cube"></i> ArtZakharii</a>
+            <ul class="nav-links">
+                <li><a href="index.html#home" data-i18n="nav.home">Головна</a></li>
+                <li><a href="index.html#skills" data-i18n="nav.skills">Навички</a></li>
+                <li><a href="index.html#projects" data-i18n="nav.projects">Проєкти</a></li>
+                <li><a href="index.html#contact" data-i18n="nav.contact">Контакти</a></li>
+            </ul>
+            <div class="nav-actions">
+                <select id="langSelect" class="lang-select" aria-label="Language">
+                    <option value="en">English</option>
+                    <option value="pl">Polish</option>
+                    <option value="uk">Ukrainian</option>
+                    <option value="ru">Russian</option>
+                </select>
+                <button class="theme-toggle" id="themeBtn">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="project-hero">
+        <div class="container">
+            <h1 class="reveal">Hard Surface Props</h1>
+            <p class="subtitle reveal" data-i18n="props.subtitle">Weapons & Gadgets</p>
+
+            <div class="project-showcase reveal">
+                <i class="fa-solid fa-shield-halved" style="font-size: 5rem; color: #d946ef;"></i>
+            </div>
+
+            <div class="reveal" style="max-width: 800px; margin: 0 auto; text-align: left;">
+                <h2 data-i18n="props.aboutHeading">Опис проєкту</h2>
+                <p class="bio" data-i18n="props.description">
+                    Набір пропсів для шутеру від першої особи. Включає в себе штурмову гвинтівку, пістолет та sci-fi
+                    гранату. Всі моделі мають правильну сітку для деформації та оптимізований UV-pack.
+                </p>
+
+                <h3 data-i18n="props.techHeading">Технічні характеристики:</h3>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                    <span style="background: rgba(217, 70, 239, 0.1); color: #d946ef; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;"
+                        data-i18n="props.tag1">Polycount: 15k-25k tris</span>
+                    <span style="background: rgba(217, 70, 239, 0.1); color: #d946ef; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;"
+                        data-i18n="props.tag2">4K Textures</span>
+                    <span style="background: rgba(217, 70, 239, 0.1); color: #d946ef; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;"
+                        data-i18n="props.tag3">PBR Workflow</span>
+                </div>
+
+                <div class="btn-group">
+                    <a href="#" class="btn btn-primary" style="background: #d946ef;" data-i18n="props.cta">Sketchfab 3D
+                        View</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Zakharii Stroich.</p>
+        <div id="react-root" class="react-badge"></div>
+    </footer>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

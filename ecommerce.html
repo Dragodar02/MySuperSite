@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Platform | Микола Коваленко</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Specific page overrides if needed */
+        .project-hero {
+            padding: 8rem 0 4rem;
+            text-align: center;
+        }
+
+        .project-showcase {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            border: 1px solid var(--border);
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: var(--primary);
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(85, 98, 112, 0.1));
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav id="navbar">
+        <div class="container nav-content">
+            <a href="index.html" class="logo">
+                <i class="fa-solid fa-code"></i> DevMykola
+            </a>
+            <!-- Simplified Desktop Nav -->
+            <ul class="nav-links">
+                <li><a href="index.html#home" data-i18n="nav.home">Головна</a></li>
+                <li><a href="index.html#skills" data-i18n="nav.skills">Навички</a></li>
+                <li><a href="index.html#projects" data-i18n="nav.projects">Проєкти</a></li>
+                <li><a href="index.html#contact" data-i18n="nav.contact">Контакти</a></li>
+            </ul>
+            <div class="nav-actions">
+                <select id="langSelect" class="lang-select" aria-label="Language">
+                    <option value="en">English</option>
+                    <option value="pl">Polish</option>
+                    <option value="uk">Ukrainian</option>
+                    <option value="ru">Russian</option>
+                </select>
+                <button class="theme-toggle" id="themeBtn">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="project-hero">
+        <div class="container">
+            <h1 class="reveal">E-Commerce Platform</h1>
+            <p class="subtitle reveal" data-i18n="ecommerce.subtitle">Повнофункціональний інтернет-магазин</p>
+
+            <div class="project-showcase reveal">
+                <i class="fa-solid fa-shop"></i>
+            </div>
+
+            <div class="reveal" style="max-width: 800px; margin: 0 auto; text-align: left;">
+                <h2 data-i18n="ecommerce.aboutHeading">Про проєкт</h2>
+                <p class="bio" data-i18n="ecommerce.description1">
+                    ModernShop - це масштабована платформа електронної комерції, розроблена для забезпечення найкращого
+                    користувацького досвіду. Вона побудована на MERN стеку (MongoDB, Express, React, Node.js) і
+                    забезпечує швидке завантаження сторінок, безпечні платежі та зручне керування каталогом.
+                </p>
+
+                <p class="bio" data-i18n="ecommerce.description2">
+                    Метою проекту було створення універсального рішення для малого та середнього бізнесу, яке дозволяє
+                    запустити онлайн-магазин за лічені хвилини.
+                </p>
+
+                <h3 data-i18n="ecommerce.featuresHeading">Основний функціонал:</h3>
+                <div class="skills-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                    <div style="background: var(--bg-1); padding: 1rem; border-radius: 10px;">
+                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;"><i
+                                class="fa-solid fa-cart-shopping"></i> <span
+                                data-i18n="ecommerce.feature1.title">Кошик та Checkout</span></h4>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);" data-i18n="ecommerce.feature1.desc">
+                            Повністю функціональний кошик з збереженням стану та покроковим оформленням замовлення.</p>
+                    </div>
+                    <div style="background: var(--bg-1); padding: 1rem; border-radius: 10px;">
+                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;"><i
+                                class="fa-solid fa-user-shield"></i> <span data-i18n="ecommerce.feature2.title">Адмін
+                                Панель</span></h4>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);" data-i18n="ecommerce.feature2.desc">
+                            Дашборд для керування товарами, категоріями, замовленнями та користувачами.</p>
+                    </div>
+                    <div style="background: var(--bg-1); padding: 1rem; border-radius: 10px;">
+                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;"><i
+                                class="fa-solid fa-credit-card"></i> <span
+                                data-i18n="ecommerce.feature3.title">Платежі</span></h4>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);" data-i18n="ecommerce.feature3.desc">
+                            Інтеграція Stripe та PayPal для безпечної обробки транзакцій.</p>
+                    </div>
+                    <div style="background: var(--bg-1); padding: 1rem; border-radius: 10px;">
+                        <h4 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fa-solid fa-star"></i> <span
+                                data-i18n="ecommerce.feature4.title">Відгуки</span></h4>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);" data-i18n="ecommerce.feature4.desc">
+                            Система рейтингів та коментарів для кожного товару.</p>
+                    </div>
+                </div>
+
+                <h3 data-i18n="ecommerce.stackHeading">Технологічний стек:</h3>
+                <ul
+                    style="list-style: none; margin-bottom: 2rem; color: var(--text-muted); font-size: 1.1rem; column-count: 2;">
+                    <li><i class="fa-brands fa-react" style="color: var(--primary); width: 25px;"></i> <span
+                            data-i18n="ecommerce.stack1">React.js / Redux Toolkit</span></li>
+                    <li><i class="fa-brands fa-node" style="color: var(--primary); width: 25px;"></i> <span
+                            data-i18n="ecommerce.stack2">Node.js / Express</span></li>
+                    <li><i class="fa-solid fa-database" style="color: var(--primary); width: 25px;"></i> <span
+                            data-i18n="ecommerce.stack3">MongoDB / Mongoose</span></li>
+                    <li><i class="fa-brands fa-css3-alt" style="color: var(--primary); width: 25px;"></i> <span
+                            data-i18n="ecommerce.stack4">Tailwind CSS</span></li>
+                    <li><i class="fa-brands fa-docker" style="color: var(--primary); width: 25px;"></i> <span
+                            data-i18n="ecommerce.stack5">Docker</span></li>
+                    <li><i class="fa-solid fa-cloud" style="color: var(--primary); width: 25px;"></i> <span
+                            data-i18n="ecommerce.stack6">AWS S3</span></li>
+                </ul>
+
+                <div class="btn-group">
+                    <a href="#" class="btn btn-primary" data-i18n="ecommerce.ctaDemo">Відкрити Демо</a>
+                    <a href="#" class="btn btn-outline"><i class="fa-brands fa-github"></i> <span
+                            data-i18n="ecommerce.ctaCode">Код на GitHub</span></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Микола Коваленко. Всі права захищено.</p>
+        <div id="react-root" class="react-badge"></div>
+    </footer>
+
+    <!-- Reuse script for scroll/reveal animations -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
