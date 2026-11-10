@@ -1,60 +1,59 @@
-# Zakharii Stroich — Portfolio
+# Zakharii Stroich — Character & Technical Artist
 
-A dark, static portfolio for a 3D Character & Technical Artist. There's no build step: open `index.html` or deploy the folder to any static host (GitHub Pages, Netlify, Vercel).
+Portfolio of Zakharii Stroich, a character and technical artist from Lublin, Poland, and a 3rd-year Informatics student at KUL. The site presents game-ready characters, hard-surface props and an environment, with topology, UVs and PBR texturing — from sculpt to Unreal Engine 5. Modelling is done in Blender, ZBrush and Substance Painter.
 
-## Structure
+**Live site:** [dragodar02.github.io/MySuperSite](https://dragodar02.github.io/MySuperSite/)
 
+## Preview
+
+| [Cyber Samurai](character.html) | [Hard Surface Props](props.html) | [Sci-Fi Outpost](environment.html) |
+| --- | --- | --- |
+| ![Cyber Samurai](assets/img/bust-beauty.webp) | ![Hard Surface Props](assets/img/prop-beauty.webp) | ![Sci-Fi Outpost](assets/img/env-beauty.webp) |
+
+## Pages
+
+| Page | What it shows |
+| --- | --- |
+| `index.html` | Home: hero, selected work, technical breakdown, pipeline, about, contact |
+| `character.html` | Case study — Cyber Samurai |
+| `props.html` | Case study — Hard Surface Props |
+| `environment.html` | Case study — Sci-Fi Outpost |
+| `404.html` | Missing-page screen, same layout as the rest of the site |
+
+The home page filters work by character, hard surface and environment. Each case study has a before/after comparison, shading modes, and the stats defined for that project. Cyber Samurai and Hard Surface Props also show a UV layout and a PBR map breakdown. The contact form opens the visitor's email app; it does not post to a server.
+
+## Tech stack
+
+Static HTML, CSS and JavaScript. There is no framework and no required build for hosting.
+
+Optional libraries, loaded from a CDN and skipped cleanly if they fail: [GSAP](https://gsap.com/) and ScrollTrigger, [Lenis](https://github.com/darkroomengineering/lenis) for smooth scroll, and [Three.js](https://threejs.org/) 0.160 for the hero. The hero reads `data-video`, `data-model` and `data-poster` on the home section. With both media attributes empty it draws a point field behind the poster, and it falls back to the still image when WebGL is unavailable, Save-Data is on, or the visitor prefers reduced motion.
+
+Tools listed on the pipeline: ZBrush, Blender, Maya, Substance 3D Painter, Marmoset Toolbag, RizomUV, Marvelous Designer, Unreal Engine 5.
+
+## Run locally
+
+From the repository root:
+
+```bash
+python3 -m http.server 8080
 ```
-index.html            Hero · Work · Breakdown · Pipeline · About · Contact
-character.html        Case study: Cyber Samurai
-props.html            Case study: Hard Surface Props
-environment.html      Case study: Sci-Fi Outpost
-css/base.css          Design tokens, reset, type, buttons, cursor, reveal
-css/layout.css        Nav, hero, marquee, about, contact, footer, case header
-css/components.css    Work cards, compare slider, viewport modes, metrics, UV, PBR, pipeline, tools
-js/core/utils.js      Helpers and the module registry (window.ZS)
-js/modules/*.js       One feature per file (smooth-scroll, reveal, cursor, magnetic,
-                      compare, segmented, hero-stage, ui)
-js/main.js            Boot: runs every module in its own try/catch
-assets/img, assets/icons
+
+Open [http://localhost:8080/](http://localhost:8080/). Links and assets are relative, so the same files also work under the GitHub Pages subpath `/MySuperSite/`.
+
+## Build
+
+Page copy, projects, pipeline stages and tool list live in `tools/build.py`. Regenerate the HTML from the repo root:
+
+```bash
+python3 tools/build.py
 ```
 
-To add a feature, create `js/modules/my-feature.js` with `ZS.register('myFeature', () => {...})` and add a `<script defer>` tag before `main.js`.
+That writes `index.html`, `character.html`, `props.html`, `environment.html` and `404.html`. The HTML is plain and can be edited by hand; the next run overwrites those five files. Images stay in `assets/img` and are referenced by filename (`bust-beauty.webp`, `prop-beauty.webp`, `env-beauty.webp`, the wire and topology passes, `uv-layout.webp`, and the `pbr-*` maps). The portrait is `assets/img/avatar.jpg`. The renders currently in the repo are stand-ins; replace the files and keep the names. Polycounts and UV stats are the values in `PROJECTS` inside `tools/build.py`.
 
-## Swapping in your real renders
+## GitHub Pages
 
-The images in `assets/img` are procedural placeholders. To use your own, replace them with your Marmoset or UE5 renders and keep the same file names. Use a 4:5 ratio (800×1000 or larger), WebP format, and a transparent or dark background.
+The site is meant to be served from the `main` branch, folder `/ (root)`, at [https://dragodar02.github.io/MySuperSite/](https://dragodar02.github.io/MySuperSite/). `.nojekyll` is in the root so Pages does not run Jekyll. `404.html` uses `/MySuperSite/…` paths because Pages shows that file at the missing URL; every other page uses relative paths.
 
-| File | Used for |
-|---|---|
-| bust-beauty / bust-lowpoly | Compare slider (high vs low poly) |
-| bust-wire / bust-topo | Wireframe and topology overlays |
-| pbr-albedo, -normal, -roughness, -metallic, -ao | PBR breakdown (square) |
-| uv-layout | UV layout panel (square) |
-| prop-*, env-* | Other projects |
+## Credits
 
-Tip: render the beauty, wireframe and topology passes from the **same camera** so the overlays line up exactly.
-
-## Hero media modes
-
-Set these on `<section class="hero">` in index.html:
-
-- `data-video="assets/video/turntable.mp4"` plays a muted, looping turntable video (H.264 or WebM, about 10 s, under 8 MB).
-- `data-model="assets/models/character.glb"` shows an interactive Three.js viewer with drag-to-rotate.
-- If you leave both empty, you get the default: a reactive WebGL point field behind the poster render.
-
-When WebGL isn't available, Save-Data is on, or the visitor prefers reduced motion, the hero falls back to the static poster.
-
-## Editing content
-
-The pages are generated by `tools/build.py` (run `python3 tools/build.py`) from the `PROJECTS`, `TOOLS` and `STAGES` lists. You can also edit the HTML directly. **The polycounts, texel density and UV stats are placeholder values. Replace them with your real numbers.**
-
-## Libraries (all optional, loaded from CDN)
-
-GSAP + ScrollTrigger (parallax), Lenis (smooth scroll), Three.js 0.160 (hero, via importmap). If a CDN is blocked, the site still works: reveals use IntersectionObserver plus CSS, and parallax uses a rAF fallback.
-
-## Accessibility & performance
-
-- Keyboard support for the compare slider (arrow keys), tabs (arrows, Home, End), filters and the menu.
-- `prefers-reduced-motion` is respected, and the custom cursor only appears with a fine pointer.
-- Images are lazy-loaded, the WebGL pixel ratio is capped at 1.75, and rendering pauses when the hero is offscreen or the tab is hidden.
+The Blender, ZBrush and Substance Painter icons in `assets/icons` (`icons8-blender-3d-48.png`, `icons8-zbrush-100.png`, `icons8-substance-painter-64.png`) are from [Icons8](https://icons8.com).

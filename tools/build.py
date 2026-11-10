@@ -1,8 +1,13 @@
 """Static page generator for the portfolio (optional — the output HTML is plain and hand-editable).
-Edit PROJECTS / TOOLS / STAGES below, then run: python3 build.py
+Edit PROJECTS / TOOLS / STAGES below, then run from the repo root: python3 tools/build.py
 """
 import os
 OUT = os.environ.get('OUT', os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', ''))
+# GitHub Pages project site. Page and asset links stay relative so the same files
+# work at the domain root and under this subpath. 404.html is the exception: Pages
+# serves it at the missing URL, so its links are rooted at the project path.
+SITE = 'https://dragodar02.github.io/MySuperSite/'
+PAGES_PREFIX = '/MySuperSite/'
 
 OWNER = {
     'name': 'Zakharii Stroich', 'first': 'Zakharii', 'last': 'Stroich',
@@ -100,8 +105,15 @@ STAGES = [
 ]
 
 # ------------------------------------------------------------------ partials
-def head(title, desc, preload=None):
-    pre = f'\n  <link rel="preload" as="image" href="{preload}" type="image/webp">' if preload else ''
+def abs_url(path):
+    if path.startswith('http://') or path.startswith('https://'):
+        return path
+    return SITE + path.lstrip('/')
+
+def head(title, desc, preload=None, image='assets/img/bust-beauty.webp', page='', prefix=''):
+    pre = f'\n  <link rel="preload" as="image" href="{prefix}{preload}" type="image/webp">' if preload else ''
+    canonical = SITE if not page else abs_url(page)
+    og_image = abs_url(image)
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -109,17 +121,27 @@ def head(title, desc, preload=None):
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{title}</title>
   <meta name="description" content="{desc}">
+  <link rel="canonical" href="{canonical}">
   <meta name="theme-color" content="#0a0a0b">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{OWNER['name']}">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:url" content="{canonical}">
   <meta property="og:title" content="{title}">
   <meta property="og:description" content="{desc}">
-  <meta property="og:image" content="assets/img/bust-beauty.webp">
+  <meta property="og:image" content="{og_image}">
+  <meta property="og:image:alt" content="{title}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{title}">
+  <meta name="twitter:description" content="{desc}">
+  <meta name="twitter:image" content="{og_image}">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0b'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23d4ff3a' transform='rotate(45 16 16)'/%3E%3C/svg%3E">{pre}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/layout.css">
-  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="{prefix}css/base.css">
+  <link rel="stylesheet" href="{prefix}css/layout.css">
+  <link rel="stylesheet" href="{prefix}css/components.css">
   <script>document.documentElement.classList.add('js')</script>
   <script type="importmap">{{"imports": {{"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}}}</script>
 </head>
@@ -128,13 +150,22 @@ def head(title, desc, preload=None):
   <div class="cursor is-hidden" aria-hidden="true"><div class="cursor__dot"></div><div class="cursor__ring"><span class="cursor__label"></span></div></div>
 '''
 
-def nav(home=True):
-    p = '' if home else 'index.html'
+def nav(home=True, prefix=''):
+    # prefix is set only for 404.html. Everywhere else, links stay relative.
+    if prefix:
+        page = f'{prefix}index.html'
+        logo = f'{page}#top'
+    elif home:
+        page = ''
+        logo = '#top'
+    else:
+        page = 'index.html'
+        logo = 'index.html#top'
     links = [('work', 'Work'), ('breakdown', 'Breakdown'), ('pipeline', 'Pipeline'), ('about', 'About'), ('contact', 'Contact')]
-    li = ''.join(f'<a href="{p}#{i}"><span>0{n + 1}</span>{t}</a>' for n, (i, t) in enumerate(links))
+    li = ''.join(f'<a href="{page}#{i}"><span>0{n + 1}</span>{t}</a>' for n, (i, t) in enumerate(links))
     return f'''  <header class="nav">
     <div class="container nav__inner">
-      <a class="logo" href="{p or '#'}top" aria-label="{OWNER['name']} — home"><span class="logo__mark">ZS/</span>{OWNER['name']}</a>
+      <a class="logo" href="{logo}" aria-label="{OWNER['name']} — home"><span class="logo__mark">ZS/</span>{OWNER['name']}</a>
       <nav class="nav__links" id="nav-links" aria-label="Primary">{li}</nav>
       <div class="nav__right">
         <span class="status"><span class="status__dot"></span>Available for freelance</span>
@@ -144,10 +175,10 @@ def nav(home=True):
   </header>
 '''
 
-def footer():
+def footer(prefix=''):
     cdn = 'https://cdn.jsdelivr.net/npm/'
     mods = ['core/utils', 'modules/smooth-scroll', 'modules/reveal', 'modules/cursor', 'modules/magnetic', 'modules/compare', 'modules/segmented', 'modules/hero-stage', 'modules/ui', 'main']
-    js = '\n'.join(f'  <script src="js/{m}.js" defer></script>' for m in mods)
+    js = '\n'.join(f'  <script src="{prefix}js/{m}.js" defer></script>' for m in mods)
     return f'''  <footer class="footer">
     <div class="container footer__inner">
       <span>© <span data-year>2026</span> {OWNER['name']}. All rights reserved.</span>
@@ -359,7 +390,7 @@ def index():
     </section>
   </main>
 '''
-    return head(f"{OWNER['name']} — {OWNER['role']}", 'Portfolio of Zakharii Stroich: game-ready characters, topology, UVs and PBR texturing for real-time engines.', IMG + 'bust-beauty.webp') + body + footer()
+    return head(f"{OWNER['name']} — {OWNER['role']}", 'Portfolio of Zakharii Stroich: game-ready characters, topology, UVs and PBR texturing for real-time engines.', IMG + 'bust-beauty.webp', IMG + 'bust-beauty.webp', '') + body + footer()
 
 def case(p, nxt):
     meta = ''.join(f'<div><dt>{k}</dt><dd>{v}</dd></div>' for k, v in [('Role', p['role']), ('Year', p['year']), ('Engine', p['engine']), ('Scope', p['scope'])])
@@ -392,10 +423,32 @@ def case(p, nxt):
     </section>
   </main>
 '''
-    return head(f"{p['title']} — {OWNER['name']}", p['lead'][:155], IMG + p['cover']) + body + footer()
+    return head(f"{p['title']} — {OWNER['name']}", p['lead'][:155], IMG + p['cover'], IMG + p['cover'], p['slug'] + '.html') + body + footer()
+
+def not_found():
+    # GitHub Pages keeps the missing URL, so relative css/js would 404 on nested paths.
+    prefix = PAGES_PREFIX
+    title = f'Page not found — {OWNER["name"]}'
+    desc = 'This page is not part of the portfolio of Zakharii Stroich.'
+    body = f'''{nav(False, prefix)}
+  <main id="main">
+    <section class="case-hero" id="top">
+      <div class="container">
+        <span class="eyebrow">404</span>
+        <h1 class="display case-hero__title">Page not found.</h1>
+        <p class="lead">That address is not part of the portfolio. The work is still on the homepage.</p>
+        <div class="hero__ctas" style="margin-top: var(--s-6);">
+          <a class="btn btn--primary" href="{prefix}index.html">Back to the work <span class="btn__icon">{ARROW}</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+'''
+    return head(title, desc, image=IMG + 'bust-beauty.webp', page='404.html', prefix=prefix) + body + footer(prefix)
 
 if __name__ == '__main__':
     with open(OUT + 'index.html', 'w') as f: f.write(index())
     for i, p in enumerate(PROJECTS):
         with open(OUT + p['slug'] + '.html', 'w') as f: f.write(case(p, PROJECTS[(i + 1) % len(PROJECTS)]))
+    with open(OUT + '404.html', 'w') as f: f.write(not_found())
     print('built')
