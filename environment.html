@@ -1,85 +1,110 @@
 <!DOCTYPE html>
-<html lang="uk">
-
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sci-Fi Outpost | Zakharii Stroich</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sci-Fi Outpost — Zakharii Stroich</title>
+  <meta name="description" content="A modular sci-fi outpost assembled in Unreal Engine 5 with Lumen dynamic lighting, built from a reusable kit of 38 pieces.">
+  <meta name="theme-color" content="#0a0a0b">
+  <meta property="og:title" content="Sci-Fi Outpost — Zakharii Stroich">
+  <meta property="og:description" content="A modular sci-fi outpost assembled in Unreal Engine 5 with Lumen dynamic lighting, built from a reusable kit of 38 pieces.">
+  <meta property="og:image" content="assets/img/bust-beauty.webp">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0b'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23d4ff3a' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
+  <link rel="preload" as="image" href="assets/img/env-beauty.webp" type="image/webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <script>document.documentElement.classList.add('js')</script>
+  <script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 </head>
-
 <body>
-    <nav id="navbar">
-        <div class="container nav-content">
-            <a href="index.html" class="logo"><i class="fa-solid fa-cube"></i> ArtZakharii</a>
-            <ul class="nav-links">
-                <li><a href="index.html#home" data-i18n="nav.home">Головна</a></li>
-                <li><a href="index.html#skills" data-i18n="nav.skills">Навички</a></li>
-                <li><a href="index.html#projects" data-i18n="nav.projects">Проєкти</a></li>
-                <li><a href="index.html#contact" data-i18n="nav.contact">Контакти</a></li>
-            </ul>
-            <div class="nav-actions">
-                <select id="langSelect" class="lang-select" aria-label="Language">
-                    <option value="en">English</option>
-                    <option value="pl">Polish</option>
-                    <option value="uk">Ukrainian</option>
-                    <option value="ru">Russian</option>
-                </select>
-                <button class="theme-toggle" id="themeBtn">
-                    <i class="fa-solid fa-moon"></i>
-                </button>
-                <button class="menu-toggle" id="menuToggle" aria-label="Menu">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-            </div>
-        </div>
-    </nav>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="cursor is-hidden" aria-hidden="true"><div class="cursor__dot"></div><div class="cursor__ring"><span class="cursor__label"></span></div></div>
+  <header class="nav">
+    <div class="container nav__inner">
+      <a class="logo" href="index.htmltop" aria-label="Zakharii Stroich — home"><span class="logo__mark">ZS/</span>Zakharii Stroich</a>
+      <nav class="nav__links" id="nav-links" aria-label="Primary"><a href="index.html#work"><span>01</span>Work</a><a href="index.html#breakdown"><span>02</span>Breakdown</a><a href="index.html#pipeline"><span>03</span>Pipeline</a><a href="index.html#about"><span>04</span>About</a><a href="index.html#contact"><span>05</span>Contact</a></nav>
+      <div class="nav__right">
+        <span class="status"><span class="status__dot"></span>Available for freelance</span>
+        <button class="nav__toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
 
-    <section class="project-hero">
-        <div class="container">
-            <h1 class="reveal">Sci-Fi Outpost</h1>
-            <p class="subtitle reveal" data-i18n="environment.subtitle">Real-time Environment in UE5</p>
-
-            <div class="project-showcase reveal">
-                <i class="fa-solid fa-mountain-sun" style="font-size: 5rem; color: var(--secondary);"></i>
-            </div>
-
-            <div class="reveal" style="max-width: 800px; margin: 0 auto; text-align: left;">
-                <h2 data-i18n="environment.aboutHeading">Опис проєкту</h2>
-                <p class="bio" data-i18n="environment.description">
-                    Повноцінна ігрова локація, створена на Unreal Engine 5. Основний фокус був на роботі з освітленням
-                    (Lumen) та створенні модульних асетів для побудови бази.
-                </p>
-
-                <h3 data-i18n="environment.detailsHeading">Деталі:</h3>
-                <ul style="list-style: none; margin-bottom: 2rem; color: var(--text-muted); font-size: 1.1rem;">
-                    <li><i class="fa-solid fa-layer-group" style="color: var(--secondary);"></i> <span
-                            data-i18n="environment.detail1">Використання Nanite для високої деталізації.</span></li>
-                    <li><i class="fa-solid fa-lightbulb" style="color: var(--secondary);"></i> <span
-                            data-i18n="environment.detail2">Налаштування динамічного освітлення та пост-процесингу.</span>
-                    </li>
-                    <li><i class="fa-solid fa-cubes" style="color: var(--secondary);"></i> <span
-                            data-i18n="environment.detail3">Створення Material Master для гнучкого налаштування поверхонь.</span>
-                    </li>
-                </ul>
-
-                <div class="btn-group">
-                    <a href="#" class="btn btn-primary" style="background: var(--secondary);"
-                        data-i18n="environment.cta">Відео-проліт (YouTube)</a>
-                </div>
-            </div>
-        </div>
+  <main id="main">
+    <section class="case-hero" id="top">
+      <div class="container" data-split>
+        <a class="back-link" href="index.html#work"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M14 8H3m4-4L3 8l4 4" stroke="currentColor" stroke-width="1.5"/></svg> All work</a>
+        <div style="margin-top: var(--s-5);"><span class="eyebrow">Environment — 2024</span></div>
+        <h1 class="display case-hero__title"><span class="split-line"><span>Sci-Fi Outpost</span></span></h1>
+        <p class="lead" data-reveal>A modular sci-fi outpost assembled in Unreal Engine 5 with Lumen dynamic lighting, built from a reusable kit of 38 pieces.</p>
+        <dl class="case-meta" data-reveal style="margin-top: var(--s-7);"><div><dt>Role</dt><dd>Environment artist</dd></div><div><dt>Year</dt><dd>2024</dd></div><div><dt>Engine</dt><dd>Unreal Engine 5</dd></div><div><dt>Scope</dt><dd>Modular kit → Lighting → Optimisation</dd></div></dl>
+      </div>
     </section>
-
-    <footer>
-        <p>&copy; 2024 Zakharii Stroich.</p>
-        <div id="react-root" class="react-badge"></div>
-    </footer>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="script.js"></script>
+    <section class="section" style="padding-top: 0;">
+      <div class="container"><div class="bd"><div class="bd-row"><div class="panel" data-reveal>
+          <div class="panel__head"><h3 class="panel__title">High → Low comparison</h3><span class="mono muted">Drag or use ← →</span></div>
+          <div class="viewport compare" data-compare data-labels="Lit|Wire" data-cursor="Drag">
+            <img src="assets/img/env-wire.webp" alt="Sci-Fi Outpost — Wire" loading="lazy" width="800" height="1000">
+            <div class="viewport__layer compare__top"><img src="assets/img/env-beauty.webp" alt="Sci-Fi Outpost — Lit" loading="lazy" width="800" height="1000"></div>
+            <input class="compare__range" type="range" min="0" max="100" value="50" aria-label="Comparison position: Lit versus Wire">
+            <div class="compare__handle"><span class="compare__knob"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7 5 2 10l5 5M13 5l5 5-5 5" stroke="currentColor" stroke-width="1.6"/></svg></span></div>
+            <div class="compare__labels"><span>Lit</span><span>Wire</span></div>
+            <span class="viewport__corner viewport__corner--tl"></span><span class="viewport__corner viewport__corner--tr"></span><span class="viewport__corner viewport__corner--bl"></span><span class="viewport__corner viewport__corner--br"></span>
+          </div>
+        </div><div class="panel" data-reveal>
+          <div class="panel__head"><h3 class="panel__title">Shading</h3>
+            <div class="segmented" role="tablist" aria-label="Shading mode" data-modes="#view-environment"><span class="segmented__pill" aria-hidden="true"></span><button role="tab" data-mode="beauty" aria-selected="true" aria-controls="view-environment">Lit</button><button role="tab" data-mode="wire" aria-selected="false" aria-controls="view-environment">Wireframe</button></div>
+          </div>
+          <div class="viewport" id="view-environment" role="tabpanel" aria-live="polite">
+            <div class="viewport__layer" data-layer="beauty"><img src="assets/img/env-beauty.webp" alt="Sci-Fi Outpost — Lit" loading="lazy" width="800" height="1000"></div><div class="viewport__layer is-hidden" data-layer="wire"><img src="assets/img/env-wire.webp" alt="Sci-Fi Outpost — Wireframe" loading="lazy" width="800" height="1000"></div>
+            <div class="viewport__hud"><span data-mode-label>Lit</span><span>1.2M tris</span></div>
+            <span class="viewport__corner viewport__corner--tl"></span><span class="viewport__corner viewport__corner--tr"></span><span class="viewport__corner viewport__corner--bl"></span><span class="viewport__corner viewport__corner--br"></span>
+          </div>
+        </div></div><div class="bd-row bd-row--1"><div class="panel" data-reveal>
+          <div class="panel__head"><h3 class="panel__title">Polycount & budgets</h3><span class="mono muted">Game-ready</span></div>
+          <dl class="metrics"><div class="metric"><dt>Scene tris</dt><dd>1.2M</dd><div class="meter" aria-hidden="true"><span style="--v:80%"></span></div></div><div class="metric"><dt>Modular pieces</dt><dd>38</dd><div class="meter" aria-hidden="true"><span style="--v:60%"></span></div></div><div class="metric"><dt>Lighting</dt><dd>Lumen</dd><div class="meter" aria-hidden="true"><span style="--v:70%"></span></div></div><div class="metric"><dt>Target</dt><dd>60 <small>fps</small></dd><div class="meter" aria-hidden="true"><span style="--v:100%"></span></div></div></dl>
+          
+        </div></div></div></div>
+    </section>
+    <section class="section" style="padding-top: 0;">
+      <div class="container">
+        <div class="section-head">
+        <div><span class="eyebrow">Process</span><h2 class="h2" data-split><span class="split-line"><span>How it was made.</span></span></h2></div>
+        <div><span class="section-index"></span></div>
+      </div>
+        <div class="prose" data-reveal><p>The kit was designed on a 50 cm grid so every wall, floor and trim snaps cleanly; shared trim sheets keep the material count low.</p><p>Lighting uses Lumen GI with a handful of hero lights; HLODs and Nanite on rock meshes keep the scene at 60 fps.</p></div>
+        <div class="shots" style="margin-top: var(--s-8);"><figure class="shot" data-reveal><img src="assets/img/env-beauty.webp" alt="Sci-Fi Outpost — Lit scene" loading="lazy" width="800" height="1000"><figcaption><span>Lit scene</span><span class="mono">1.2M tris</span></figcaption></figure><figure class="shot" data-reveal><img src="assets/img/env-wire.webp" alt="Sci-Fi Outpost — Wireframe" loading="lazy" width="800" height="1000"><figcaption><span>Wireframe</span><span class="mono">1.2M tris</span></figcaption></figure></div>
+        <a class="next-case" href="character.html" style="margin-top: var(--s-8);" data-cursor="Next">
+          <div><span class="eyebrow">Next project</span><div class="next-case__title" style="margin-top: var(--s-3);">Cyber Samurai</div></div>
+          <span class="work-card__arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.5"/></svg></span>
+        </a>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span>© <span data-year>2026</span> Zakharii Stroich. All rights reserved.</span>
+      <span class="mono">Lublin, PL · Character & Technical Artist</span>
+      <a class="to-top" href="#top">Back to top <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 14V3m-4 4 4-4 4 4" stroke="currentColor" stroke-width="1.5"/></svg></a>
+    </div>
+  </footer>
+  <!-- Optional enhancement libraries (site works without them) -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
+  <script src="js/core/utils.js" defer></script>
+  <script src="js/modules/smooth-scroll.js" defer></script>
+  <script src="js/modules/reveal.js" defer></script>
+  <script src="js/modules/cursor.js" defer></script>
+  <script src="js/modules/magnetic.js" defer></script>
+  <script src="js/modules/compare.js" defer></script>
+  <script src="js/modules/segmented.js" defer></script>
+  <script src="js/modules/hero-stage.js" defer></script>
+  <script src="js/modules/ui.js" defer></script>
+  <script src="js/main.js" defer></script>
 </body>
-
 </html>

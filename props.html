@@ -1,83 +1,125 @@
 <!DOCTYPE html>
-<html lang="uk">
-
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hard Surface Props | Zakharii Stroich</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hard Surface Props — Zakharii Stroich</title>
+  <meta name="description" content="A set of weapons and mechanical parts for a shooter, built to tight budgets with weighted normals, clean bevels and a trim-friendly UV layout.">
+  <meta name="theme-color" content="#0a0a0b">
+  <meta property="og:title" content="Hard Surface Props — Zakharii Stroich">
+  <meta property="og:description" content="A set of weapons and mechanical parts for a shooter, built to tight budgets with weighted normals, clean bevels and a trim-friendly UV layout.">
+  <meta property="og:image" content="assets/img/bust-beauty.webp">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0b'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23d4ff3a' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
+  <link rel="preload" as="image" href="assets/img/prop-beauty.webp" type="image/webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <script>document.documentElement.classList.add('js')</script>
+  <script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 </head>
-
 <body>
-    <nav id="navbar">
-        <div class="container nav-content">
-            <a href="index.html" class="logo"><i class="fa-solid fa-cube"></i> ArtZakharii</a>
-            <ul class="nav-links">
-                <li><a href="index.html#home" data-i18n="nav.home">Головна</a></li>
-                <li><a href="index.html#skills" data-i18n="nav.skills">Навички</a></li>
-                <li><a href="index.html#projects" data-i18n="nav.projects">Проєкти</a></li>
-                <li><a href="index.html#contact" data-i18n="nav.contact">Контакти</a></li>
-            </ul>
-            <div class="nav-actions">
-                <select id="langSelect" class="lang-select" aria-label="Language">
-                    <option value="en">English</option>
-                    <option value="pl">Polish</option>
-                    <option value="uk">Ukrainian</option>
-                    <option value="ru">Russian</option>
-                </select>
-                <button class="theme-toggle" id="themeBtn">
-                    <i class="fa-solid fa-moon"></i>
-                </button>
-                <button class="menu-toggle" id="menuToggle" aria-label="Menu">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-            </div>
-        </div>
-    </nav>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="cursor is-hidden" aria-hidden="true"><div class="cursor__dot"></div><div class="cursor__ring"><span class="cursor__label"></span></div></div>
+  <header class="nav">
+    <div class="container nav__inner">
+      <a class="logo" href="index.htmltop" aria-label="Zakharii Stroich — home"><span class="logo__mark">ZS/</span>Zakharii Stroich</a>
+      <nav class="nav__links" id="nav-links" aria-label="Primary"><a href="index.html#work"><span>01</span>Work</a><a href="index.html#breakdown"><span>02</span>Breakdown</a><a href="index.html#pipeline"><span>03</span>Pipeline</a><a href="index.html#about"><span>04</span>About</a><a href="index.html#contact"><span>05</span>Contact</a></nav>
+      <div class="nav__right">
+        <span class="status"><span class="status__dot"></span>Available for freelance</span>
+        <button class="nav__toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
 
-    <section class="project-hero">
-        <div class="container">
-            <h1 class="reveal">Hard Surface Props</h1>
-            <p class="subtitle reveal" data-i18n="props.subtitle">Weapons & Gadgets</p>
-
-            <div class="project-showcase reveal">
-                <i class="fa-solid fa-shield-halved" style="font-size: 5rem; color: #d946ef;"></i>
-            </div>
-
-            <div class="reveal" style="max-width: 800px; margin: 0 auto; text-align: left;">
-                <h2 data-i18n="props.aboutHeading">Опис проєкту</h2>
-                <p class="bio" data-i18n="props.description">
-                    Набір пропсів для шутеру від першої особи. Включає в себе штурмову гвинтівку, пістолет та sci-fi
-                    гранату. Всі моделі мають правильну сітку для деформації та оптимізований UV-pack.
-                </p>
-
-                <h3 data-i18n="props.techHeading">Технічні характеристики:</h3>
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
-                    <span style="background: rgba(217, 70, 239, 0.1); color: #d946ef; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;"
-                        data-i18n="props.tag1">Polycount: 15k-25k tris</span>
-                    <span style="background: rgba(217, 70, 239, 0.1); color: #d946ef; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;"
-                        data-i18n="props.tag2">4K Textures</span>
-                    <span style="background: rgba(217, 70, 239, 0.1); color: #d946ef; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;"
-                        data-i18n="props.tag3">PBR Workflow</span>
-                </div>
-
-                <div class="btn-group">
-                    <a href="#" class="btn btn-primary" style="background: #d946ef;" data-i18n="props.cta">Sketchfab 3D
-                        View</a>
-                </div>
-            </div>
-        </div>
+  <main id="main">
+    <section class="case-hero" id="top">
+      <div class="container" data-split>
+        <a class="back-link" href="index.html#work"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M14 8H3m4-4L3 8l4 4" stroke="currentColor" stroke-width="1.5"/></svg> All work</a>
+        <div style="margin-top: var(--s-5);"><span class="eyebrow">Hard surface — 2024</span></div>
+        <h1 class="display case-hero__title"><span class="split-line"><span>Hard Surface Props</span></span></h1>
+        <p class="lead" data-reveal>A set of weapons and mechanical parts for a shooter, built to tight budgets with weighted normals, clean bevels and a trim-friendly UV layout.</p>
+        <dl class="case-meta" data-reveal style="margin-top: var(--s-7);"><div><dt>Role</dt><dd>Prop artist</dd></div><div><dt>Year</dt><dd>2024</dd></div><div><dt>Engine</dt><dd>Unreal Engine 5</dd></div><div><dt>Scope</dt><dd>Modelling → UV → Bake → Texture</dd></div></dl>
+      </div>
     </section>
-
-    <footer>
-        <p>&copy; 2024 Zakharii Stroich.</p>
-        <div id="react-root" class="react-badge"></div>
-    </footer>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="script.js"></script>
+    <section class="section" style="padding-top: 0;">
+      <div class="container"><div class="bd"><div class="bd-row"><div class="panel" data-reveal>
+          <div class="panel__head"><h3 class="panel__title">High → Low comparison</h3><span class="mono muted">Drag or use ← →</span></div>
+          <div class="viewport compare" data-compare data-labels="Beauty|Wire" data-cursor="Drag">
+            <img src="assets/img/prop-wire.webp" alt="Hard Surface Props — Wire" loading="lazy" width="800" height="1000">
+            <div class="viewport__layer compare__top"><img src="assets/img/prop-beauty.webp" alt="Hard Surface Props — Beauty" loading="lazy" width="800" height="1000"></div>
+            <input class="compare__range" type="range" min="0" max="100" value="50" aria-label="Comparison position: Beauty versus Wire">
+            <div class="compare__handle"><span class="compare__knob"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7 5 2 10l5 5M13 5l5 5-5 5" stroke="currentColor" stroke-width="1.6"/></svg></span></div>
+            <div class="compare__labels"><span>Beauty</span><span>Wire</span></div>
+            <span class="viewport__corner viewport__corner--tl"></span><span class="viewport__corner viewport__corner--tr"></span><span class="viewport__corner viewport__corner--bl"></span><span class="viewport__corner viewport__corner--br"></span>
+          </div>
+        </div><div class="panel" data-reveal>
+          <div class="panel__head"><h3 class="panel__title">Shading</h3>
+            <div class="segmented" role="tablist" aria-label="Shading mode" data-modes="#view-props"><span class="segmented__pill" aria-hidden="true"></span><button role="tab" data-mode="beauty" aria-selected="true" aria-controls="view-props">Beauty</button><button role="tab" data-mode="wire" aria-selected="false" aria-controls="view-props">Wireframe</button></div>
+          </div>
+          <div class="viewport" id="view-props" role="tabpanel" aria-live="polite">
+            <div class="viewport__layer" data-layer="beauty"><img src="assets/img/prop-beauty.webp" alt="Hard Surface Props — Beauty" loading="lazy" width="800" height="1000"></div><div class="viewport__layer is-hidden" data-layer="wire"><img src="assets/img/prop-wire.webp" alt="Hard Surface Props — Wireframe" loading="lazy" width="800" height="1000"></div>
+            <div class="viewport__hud"><span data-mode-label>Beauty</span><span>12,640 tris</span></div>
+            <span class="viewport__corner viewport__corner--tl"></span><span class="viewport__corner viewport__corner--tr"></span><span class="viewport__corner viewport__corner--bl"></span><span class="viewport__corner viewport__corner--br"></span>
+          </div>
+        </div></div><div class="bd-row bd-row--5-7"><div class="panel" data-reveal>
+          <div class="panel__head"><h3 class="panel__title">Polycount & budgets</h3><span class="mono muted">Game-ready</span></div>
+          <dl class="metrics"><div class="metric"><dt>Triangles</dt><dd>12,640 <small>LOD0</small></dd><div class="meter" aria-hidden="true"><span style="--v:40%"></span></div></div><div class="metric"><dt>Texture sets</dt><dd>2 <small>× 2K</small></dd><div class="meter" aria-hidden="true"><span style="--v:50%"></span></div></div><div class="metric"><dt>Texel density</dt><dd>20.48 <small>px/cm</small></dd><div class="meter" aria-hidden="true"><span style="--v:90%"></span></div></div><div class="metric"><dt>LODs</dt><dd>3</dd><div class="meter" aria-hidden="true"><span style="--v:30%"></span></div></div></dl>
+          <div class="lods"><span class="lods__title">LOD chain</span><div class="lod"><span>LOD0</span><div class="meter" aria-hidden="true"><span style="--v:100%"></span></div><span>12.6K</span></div><div class="lod"><span>LOD1</span><div class="meter" aria-hidden="true"><span style="--v:48%"></span></div><span>6.1K</span></div><div class="lod"><span>LOD2</span><div class="meter" aria-hidden="true"><span style="--v:19%"></span></div><span>2.4K</span></div></div>
+        </div><div class="panel" data-reveal>
+          <div class="panel__head"><h3 class="panel__title">UV layout</h3><span class="mono muted">0–1 space</span></div>
+          <div class="panel__body uv">
+            <div class="uv__map"><img src="assets/img/uv-layout.webp" alt="Hard Surface Props UV layout" loading="lazy" width="1024" height="1024"><span class="uv__axis uv__axis--u">U →</span><span class="uv__axis uv__axis--v">↑ V</span></div>
+            <ul class="legend"><li><span>UDIM</span><span>1001–1002</span></li><li><span>Islands</span><span>41</span></li><li><span>Packing</span><span>81.2%</span></li><li><span>Padding</span><span>8 px</span></li><li><span>Unwrap</span><span>RizomUV</span></li></ul>
+          </div>
+        </div></div><div class="bd-row bd-row--1"><div class="panel" data-reveal>
+          <div class="panel__head"><h3 class="panel__title">PBR texture breakdown</h3><span class="mono muted">Metal / Rough</span></div>
+          <div class="pbr" data-pbr>
+            <figure class="pbr__preview" id="pbr-props" role="tabpanel"><img src="assets/img/pbr-albedo.webp" alt="Albedo map" data-map-img="albedo" loading="lazy" width="768" height="768"><img src="assets/img/pbr-normal.webp" alt="Normal map" data-map-img="normal" loading="lazy" width="768" height="768" class="is-hidden"><img src="assets/img/pbr-roughness.webp" alt="Roughness map" data-map-img="roughness" loading="lazy" width="768" height="768" class="is-hidden"><img src="assets/img/pbr-metallic.webp" alt="Metallic map" data-map-img="metallic" loading="lazy" width="768" height="768" class="is-hidden"><img src="assets/img/pbr-ao.webp" alt="Ambient Occlusion map" data-map-img="ao" loading="lazy" width="768" height="768" class="is-hidden"><span class="pbr__badge">Albedo · sRGB · 4K</span></figure>
+            <div class="pbr__side">
+              <div class="pbr__list" role="tablist" aria-label="Texture maps" aria-orientation="vertical"><button class="pbr__tab" role="tab" data-map="albedo" data-badge="Albedo · sRGB · 4K" aria-selected="true" aria-controls="pbr-props"><span class="pbr__thumb"><img src="assets/img/pbr-albedo.webp" alt="" loading="lazy" width="44" height="44"></span><span class="pbr__name">Albedo<span class="pbr__desc">Base colour, no lighting</span></span><span class="pbr__fmt">sRGB · 4K</span></button><button class="pbr__tab" role="tab" data-map="normal" data-badge="Normal · Linear · 4K" aria-selected="false" aria-controls="pbr-props"><span class="pbr__thumb"><img src="assets/img/pbr-normal.webp" alt="" loading="lazy" width="44" height="44"></span><span class="pbr__name">Normal<span class="pbr__desc">Baked from high-poly, OpenGL Y+</span></span><span class="pbr__fmt">Linear · 4K</span></button><button class="pbr__tab" role="tab" data-map="roughness" data-badge="Roughness · Linear · 4K" aria-selected="false" aria-controls="pbr-props"><span class="pbr__thumb"><img src="assets/img/pbr-roughness.webp" alt="" loading="lazy" width="44" height="44"></span><span class="pbr__name">Roughness<span class="pbr__desc">Micro-surface response</span></span><span class="pbr__fmt">Linear · 4K</span></button><button class="pbr__tab" role="tab" data-map="metallic" data-badge="Metallic · Linear · 2K" aria-selected="false" aria-controls="pbr-props"><span class="pbr__thumb"><img src="assets/img/pbr-metallic.webp" alt="" loading="lazy" width="44" height="44"></span><span class="pbr__name">Metallic<span class="pbr__desc">Conductor mask</span></span><span class="pbr__fmt">Linear · 2K</span></button><button class="pbr__tab" role="tab" data-map="ao" data-badge="Ambient Occlusion · Linear · 2K" aria-selected="false" aria-controls="pbr-props"><span class="pbr__thumb"><img src="assets/img/pbr-ao.webp" alt="" loading="lazy" width="44" height="44"></span><span class="pbr__name">Ambient Occlusion<span class="pbr__desc">Baked cavity + AO</span></span><span class="pbr__fmt">Linear · 2K</span></button></div>
+              <dl class="pbr__info"><div><dt>Workflow</dt><dd>Metal / Roughness</dd></div><div><dt>Texture sets</dt><dd>Body · Attachments (2 × 2K)</dd></div><div><dt>Authoring</dt><dd>Substance 3D Painter</dd></div></dl>
+            </div>
+          </div>
+        </div></div></div></div>
+    </section>
+    <section class="section" style="padding-top: 0;">
+      <div class="container">
+        <div class="section-head">
+        <div><span class="eyebrow">Process</span><h2 class="h2" data-split><span class="split-line"><span>How it was made.</span></span></h2></div>
+        <div><span class="section-index"></span></div>
+      </div>
+        <div class="prose" data-reveal><p>High-poly built with support loops and booleans, low-poly with weighted normals to minimise bake artefacts.</p><p>Textures authored in Substance 3D Painter with anchor-point edge wear and imported to Unreal Engine 5 with packed ORM maps.</p></div>
+        <div class="shots" style="margin-top: var(--s-8);"><figure class="shot" data-reveal><img src="assets/img/prop-beauty.webp" alt="Hard Surface Props — In-engine render" loading="lazy" width="800" height="1000"><figcaption><span>In-engine render</span><span class="mono">12,640 tris</span></figcaption></figure><figure class="shot" data-reveal><img src="assets/img/prop-wire.webp" alt="Hard Surface Props — Wireframe" loading="lazy" width="800" height="1000"><figcaption><span>Wireframe</span><span class="mono">12,640 tris</span></figcaption></figure></div>
+        <a class="next-case" href="environment.html" style="margin-top: var(--s-8);" data-cursor="Next">
+          <div><span class="eyebrow">Next project</span><div class="next-case__title" style="margin-top: var(--s-3);">Sci-Fi Outpost</div></div>
+          <span class="work-card__arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.5"/></svg></span>
+        </a>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span>© <span data-year>2026</span> Zakharii Stroich. All rights reserved.</span>
+      <span class="mono">Lublin, PL · Character & Technical Artist</span>
+      <a class="to-top" href="#top">Back to top <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 14V3m-4 4 4-4 4 4" stroke="currentColor" stroke-width="1.5"/></svg></a>
+    </div>
+  </footer>
+  <!-- Optional enhancement libraries (site works without them) -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
+  <script src="js/core/utils.js" defer></script>
+  <script src="js/modules/smooth-scroll.js" defer></script>
+  <script src="js/modules/reveal.js" defer></script>
+  <script src="js/modules/cursor.js" defer></script>
+  <script src="js/modules/magnetic.js" defer></script>
+  <script src="js/modules/compare.js" defer></script>
+  <script src="js/modules/segmented.js" defer></script>
+  <script src="js/modules/hero-stage.js" defer></script>
+  <script src="js/modules/ui.js" defer></script>
+  <script src="js/main.js" defer></script>
 </body>
-
 </html>

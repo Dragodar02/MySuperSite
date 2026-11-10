@@ -1,284 +1,267 @@
 <!DOCTYPE html>
-<html lang="uk">
-
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zakharii - 3D Artist Portfolio</title>
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zakharii Stroich — Character & Technical Artist</title>
+  <meta name="description" content="Portfolio of Zakharii Stroich: game-ready characters, topology, UVs and PBR texturing for real-time engines.">
+  <meta name="theme-color" content="#0a0a0b">
+  <meta property="og:title" content="Zakharii Stroich — Character & Technical Artist">
+  <meta property="og:description" content="Portfolio of Zakharii Stroich: game-ready characters, topology, UVs and PBR texturing for real-time engines.">
+  <meta property="og:image" content="assets/img/bust-beauty.webp">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0b'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23d4ff3a' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
+  <link rel="preload" as="image" href="assets/img/bust-beauty.webp" type="image/webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <script>document.documentElement.classList.add('js')</script>
+  <script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 </head>
-
 <body>
-    <!-- Background Elements -->
-    <div class="ambient-shape shape-1"></div>
-    <div class="ambient-shape shape-2"></div>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="cursor is-hidden" aria-hidden="true"><div class="cursor__dot"></div><div class="cursor__ring"><span class="cursor__label"></span></div></div>
+  <header class="nav">
+    <div class="container nav__inner">
+      <a class="logo" href="#top" aria-label="Zakharii Stroich — home"><span class="logo__mark">ZS/</span>Zakharii Stroich</a>
+      <nav class="nav__links" id="nav-links" aria-label="Primary"><a href="#work"><span>01</span>Work</a><a href="#breakdown"><span>02</span>Breakdown</a><a href="#pipeline"><span>03</span>Pipeline</a><a href="#about"><span>04</span>About</a><a href="#contact"><span>05</span>Contact</a></nav>
+      <div class="nav__right">
+        <span class="status"><span class="status__dot"></span>Available for freelance</span>
+        <button class="nav__toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
 
-    <nav id="navbar">
-        <!-- 3. Navbar Scroll Effect -->
-        <div class="container nav-content">
-            <a href="#" class="logo">
-                <i class="fa-solid fa-cube"></i> ArtZakharii
-            </a>
-            <ul class="nav-links">
-                <li><a href="#home" class="active" data-i18n="nav.home">Головна</a></li>
-                <li><a href="#skills" data-i18n="nav.skills">Навички</a></li>
-                <li><a href="#projects" data-i18n="nav.projects">Проєкти</a></li>
-                <li><a href="#contact" data-i18n="nav.contact">Контакти</a></li>
-            </ul>
-            <div class="nav-actions">
-                <select id="langSelect" class="lang-select" aria-label="Language">
-                    <option value="en">English</option>
-                    <option value="pl">Polish</option>
-                    <option value="uk">Ukrainian</option>
-                    <option value="ru">Russian</option>
-                </select>
-                <!-- 1. Theme Toggle -->
-                <button class="theme-toggle" id="themeBtn">
-                    <i class="fa-solid fa-moon"></i>
-                </button>
-                <button class="menu-toggle" id="menuToggle" aria-label="Menu">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-            </div>
+  <main id="main">
+    <section class="hero" id="top" data-stage data-video="" data-model="" data-poster="assets/img/bust-beauty.webp" aria-label="Intro">
+      <div class="hero__stage" aria-hidden="true">
+        <div class="hero__bg"></div>
+        <div class="hero__grid"></div>
+        <div class="hero__subject"><img src="assets/img/bust-beauty.webp" alt="" width="800" height="1000" fetchpriority="high"></div>
+        <div class="hero__scanline"></div>
+      </div>
+      <div class="container hero__content" data-split>
+        <span class="eyebrow">Character & Technical Artist — Lublin, PL</span>
+        <h1 class="display hero__title"><span class="split-line"><span>Zakharii</span></span><span class="split-line"><span><span class="outline">Stroich</span></span></span></h1>
+        <p class="lead hero__lead" data-reveal>Game-ready characters with production topology, clean UVs and physically based materials — from first sculpt to Unreal Engine 5.</p>
+        <div class="hero__ctas" data-reveal>
+          <a class="btn btn--primary" href="#work" data-magnetic="0.25">View selected work <span class="btn__icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.5"/></svg></span></a>
+          <a class="btn" href="#contact" data-magnetic="0.25">Start a project</a>
         </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section id="home">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-text">
-                    <div id="react-status-root"></div>
-                    <div class="reveal">
-                        <h1>Zakharii Stroich</h1>
-                        <div class="subtitle">
-                            <!-- 2. Typewriter Effect -->
-                            <span data-i18n="hero.subtitlePrefix">I am a</span> <span id="typewriter"></span><span
-                                class="cursor">|</span>
-                        </div>
-                        <p class="bio" data-i18n="hero.bio">
-                            Створюю деталізовані 3D світи, персонажів та асети для ігор і кіно. Перетворюю концепт-арти
-                            на
-                            реалістичні тривимірні моделі з душею.
-                        </p>
-                        <div class="btn-group">
-                            <a href="#projects" class="btn btn-primary" data-i18n="hero.ctaPrimary">Мої Роботи</a>
-                            <a href="#contact" class="btn btn-outline" data-i18n="hero.ctaSecondary">Зв'язатись</a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Hero Image / Avatar -->
-                <div class="hero-img reveal">
-                    <div class="avatar-container-hero">
-                        <img src="avatar.jpg" alt="Zakharii Stroich" class="hero-avatar">
-                    </div>
-                </div>
-            </div>
-        </div>
+      </div>
+      <dl class="hero__hud">
+        <div class="hud__cell"><dt>Asset</dt><dd>Cyber Samurai · LOD0</dd></div>
+        <div class="hud__cell"><dt>Triangles</dt><dd>48,212</dd></div>
+        <div class="hud__cell"><dt>Viewport</dt><dd data-hud-xy>X 0.000  Y 0.000</dd></div>
+        <div class="hud__cell"><dt>Scroll</dt><dd><a class="scroll-cue" href="#work"><span class="scroll-cue__bar"></span>Explore</a></dd></div>
+      </dl>
     </section>
 
-    <!-- Skills Section -->
-    <section id="skills">
-        <div class="container">
-            <h2 class="reveal" data-i18n="skills.heading">Інструментарій</h2>
-            <!-- 4. Scroll Reveal Animation -->
-            <div class="skills-grid">
-                <div class="skill-card reveal">
-                    <!-- Blender Icon -->
-                    <img src="icons8-blender-3d-48.png" alt="Blender"
-                        style="width: 50px; height: 50px; margin-bottom: 1rem;">
-                    <h3>Blender</h3>
-                    <div class="skill-bar">
-                        <div class="skill-progress" data-width="95%"></div>
-                    </div>
-                </div>
-                <div class="skill-card reveal">
-                    <!-- ZBrush Icon - Local SVG -->
-                    <img src="icons8-zbrush-100.png" alt="ZBrush"
-                        style="width: 50px; height: 50px; margin-bottom: 1rem;">
-                    <h3>ZBrush</h3>
-                    <div class="skill-bar">
-                        <div class="skill-progress" data-width="90%"></div>
-                    </div>
-                </div>
-                <div class="skill-card reveal">
-                    <!-- Substance Painter - Local SVG -->
-                    <img src="icons8-substance-painter-64.png" alt="Substance Painter"
-                        style="width: 50px; height: 50px; margin-bottom: 1rem;">
-                    <h3>Substance </h3>
-                    <div class="skill-bar">
-                        <div class="skill-progress" data-width="85%"></div>
-                    </div>
-                </div>
-                <div class="skill-card reveal">
-                    <!-- Unreal Engine 5 -->
-                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/unrealengine/unrealengine-original.svg"
-                        alt="UE5" style="width: 50px; height: 50px; margin-bottom: 1rem; filter: invert(1);">
-                    <h3>Unreal Engine 5</h3>
-                    <div class="skill-bar">
-                        <div class="skill-progress" data-width="80%"></div>
-                    </div>
-                </div>
+    <div class="marquee" aria-hidden="true"><div class="marquee__track"><span class="marquee__item">Character art</span><span class="marquee__item">Real-time</span><span class="marquee__item">Topology</span><span class="marquee__item">PBR texturing</span><span class="marquee__item">Game-ready</span><span class="marquee__item">Unreal Engine 5</span><span class="marquee__item">Sculpting</span><span class="marquee__item">Look-dev</span><span class="marquee__item">Character art</span><span class="marquee__item">Real-time</span><span class="marquee__item">Topology</span><span class="marquee__item">PBR texturing</span><span class="marquee__item">Game-ready</span><span class="marquee__item">Unreal Engine 5</span><span class="marquee__item">Sculpting</span><span class="marquee__item">Look-dev</span></div></div>
+
+    <section class="section" id="work" tabindex="-1">
+      <div class="container">
+      <div class="section-head">
+        <div><span class="eyebrow">Selected work</span><h2 class="h2" data-split><span class="split-line"><span>Characters built</span></span><span class="split-line"><span>for real-time.</span></span></h2></div>
+        <div><div class="filters" data-filters="#work-grid" role="group" aria-label="Filter projects"><button class="chip" data-filter="all" aria-pressed="true">All</button><button class="chip" data-filter="character" aria-pressed="false">Character</button><button class="chip" data-filter="hard" aria-pressed="false">Hard surface</button><button class="chip" data-filter="environment" aria-pressed="false">Environment</button></div></div>
+      </div>
+        <div class="work-grid" id="work-grid" data-reveal-group="0.1">
+          <article class="work-card" data-cat="character" data-reveal>
+          <a class="work-card__link" href="character.html" data-cursor="View">
+            <div class="work-card__media">
+              <img src="assets/img/bust-beauty.webp" alt="Cyber Samurai — render" loading="lazy" width="800" height="1000">
+              <img class="is-alt" src="assets/img/bust-wire.webp" alt="" loading="lazy" width="800" height="1000">
+              <span class="work-card__tag">Character</span>
+              <div class="work-card__hud"><span>48,212 tris</span><span>Marmoset Toolbag 4</span></div>
             </div>
+            <div class="work-card__meta">
+              <div><h3 class="work-card__title">Cyber Samurai</h3><p class="work-card__sub">Real-time character · Cyberpunk challenge</p></div>
+              <span class="work-card__arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.5"/></svg></span>
+            </div>
+          </a>
+        </article><article class="work-card" data-cat="hard" data-reveal>
+          <a class="work-card__link" href="props.html" data-cursor="View">
+            <div class="work-card__media">
+              <img src="assets/img/prop-beauty.webp" alt="Hard Surface Props — render" loading="lazy" width="800" height="1000">
+              <img class="is-alt" src="assets/img/prop-wire.webp" alt="" loading="lazy" width="800" height="1000">
+              <span class="work-card__tag">Hard surface</span>
+              <div class="work-card__hud"><span>12,640 tris</span><span>Unreal Engine 5</span></div>
+            </div>
+            <div class="work-card__meta">
+              <div><h3 class="work-card__title">Hard Surface Props</h3><p class="work-card__sub">Shooter weapons & mechanical parts</p></div>
+              <span class="work-card__arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.5"/></svg></span>
+            </div>
+          </a>
+        </article><article class="work-card" data-cat="environment" data-reveal>
+          <a class="work-card__link" href="environment.html" data-cursor="View">
+            <div class="work-card__media">
+              <img src="assets/img/env-beauty.webp" alt="Sci-Fi Outpost — render" loading="lazy" width="800" height="1000">
+              <img class="is-alt" src="assets/img/env-wire.webp" alt="" loading="lazy" width="800" height="1000">
+              <span class="work-card__tag">Environment</span>
+              <div class="work-card__hud"><span>1.2M tris</span><span>Unreal Engine 5</span></div>
+            </div>
+            <div class="work-card__meta">
+              <div><h3 class="work-card__title">Sci-Fi Outpost</h3><p class="work-card__sub">Modular UE5 scene · dynamic lighting</p></div>
+              <span class="work-card__arrow" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.5"/></svg></span>
+            </div>
+          </a>
+        </article>
         </div>
+      </div>
     </section>
 
-    <!-- Projects Section -->
-    <section id="projects">
-        <div class="container">
-            <h2 class="reveal" data-i18n="projects.heading">Останні Роботи</h2>
-            <div class="carousel-wrapper">
-                <button class="carousel-btn prev-btn"><i class="fa-solid fa-chevron-left"></i></button>
-                <div class="carousel-track-container">
-                    <ul class="carousel-track">
-                        <!-- Project 1 -->
-                        <li class="carousel-slide current-slide">
-                            <article class="project-card reveal">
-                                <div class="project-img p-grad-1">
-                                    <div><i class="fa-solid fa-mask"></i></div>
-                                </div>
-                                <div class="project-info">
-                                    <h3>Cyber Samurai</h3>
-                                    <p data-i18n="projects.card1.desc">High-poly скульптинг персонажа з текстуруванням
-                                        та ріггінгом.
-                                    </p>
-                                    <a href="character.html" class="project-link"><span
-                                            data-i18n="projects.view">Переглянути</span>
-                                        <i class="fa-solid fa-arrow-right"></i></a>
-                                </div>
-                            </article>
-                        </li>
-                        <!-- Project 2 -->
-                        <li class="carousel-slide">
-                            <article class="project-card reveal">
-                                <div class="project-img p-grad-2">
-                                    <div><i class="fa-solid fa-mountain-sun"></i></div>
-                                </div>
-                                <div class="project-info">
-                                    <h3>Sci-Fi Outpost</h3>
-                                    <p data-i18n="projects.card2.desc">Ігрове оточення на Unreal Engine 5 з динамічним
-                                        освітленням.
-                                    </p>
-                                    <a href="environment.html" class="project-link"><span
-                                            data-i18n="projects.view">Переглянути</span>
-                                        <i class="fa-solid fa-arrow-right"></i></a>
-                                </div>
-                            </article>
-                        </li>
-                        <!-- Project 3 -->
-                        <li class="carousel-slide">
-                            <article class="project-card reveal">
-                                <div class="project-img p-grad-3">
-                                    <div><i class="fa-solid fa-shield-halved"></i></div>
-                                </div>
-                                <div class="project-info">
-                                    <h3>Hard Surface Props</h3>
-                                    <p data-i18n="projects.card3.desc">Колекція зброї та механічних елементів для
-                                        шутеру.</p>
-                                    <a href="props.html" class="project-link"><span
-                                            data-i18n="projects.view">Переглянути</span> <i
-                                            class="fa-solid fa-arrow-right"></i></a>
-                                </div>
-                            </article>
-                        </li>
-                    </ul>
-                </div>
-                <button class="carousel-btn next-btn"><i class="fa-solid fa-chevron-right"></i></button>
+    <section class="section" id="breakdown" tabindex="-1" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+      <div class="container">
+      <div class="section-head">
+        <div><span class="eyebrow">Technical breakdown — Cyber Samurai</span><h2 class="h2" data-split><span class="split-line"><span>Under the</span></span><span class="split-line"><span>surface.</span></span></h2></div>
+        <div><a class="btn" href="character.html">Full case study <span class="btn__icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.5"/></svg></span></a></div>
+      </div>
+        <div class="bd"><div class="bd-row"><div class="panel" data-reveal>
+          <div class="panel__head"><h3 class="panel__title">High → Low comparison</h3><span class="mono muted">Drag or use ← →</span></div>
+          <div class="viewport compare" data-compare data-labels="High · 18.4M|Low · 48.2K" data-cursor="Drag">
+            <img src="assets/img/bust-lowpoly.webp" alt="Cyber Samurai — Low · 48.2K" loading="lazy" width="800" height="1000">
+            <div class="viewport__layer compare__top"><img src="assets/img/bust-beauty.webp" alt="Cyber Samurai — High · 18.4M" loading="lazy" width="800" height="1000"></div>
+            <input class="compare__range" type="range" min="0" max="100" value="50" aria-label="Comparison position: High · 18.4M versus Low · 48.2K">
+            <div class="compare__handle"><span class="compare__knob"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7 5 2 10l5 5M13 5l5 5-5 5" stroke="currentColor" stroke-width="1.6"/></svg></span></div>
+            <div class="compare__labels"><span>High · 18.4M</span><span>Low · 48.2K</span></div>
+            <span class="viewport__corner viewport__corner--tl"></span><span class="viewport__corner viewport__corner--tr"></span><span class="viewport__corner viewport__corner--bl"></span><span class="viewport__corner viewport__corner--br"></span>
+          </div>
+        </div><div class="panel" data-reveal>
+          <div class="panel__head"><h3 class="panel__title">Shading</h3>
+            <div class="segmented" role="tablist" aria-label="Shading mode" data-modes="#view-home"><span class="segmented__pill" aria-hidden="true"></span><button role="tab" data-mode="beauty" aria-selected="true" aria-controls="view-home">Beauty</button><button role="tab" data-mode="wire" aria-selected="false" aria-controls="view-home">Wireframe</button><button role="tab" data-mode="topo" aria-selected="false" aria-controls="view-home">Topology</button></div>
+          </div>
+          <div class="viewport" id="view-home" role="tabpanel" aria-live="polite">
+            <div class="viewport__layer" data-layer="beauty"><img src="assets/img/bust-beauty.webp" alt="Cyber Samurai — Beauty" loading="lazy" width="800" height="1000"></div><div class="viewport__layer is-hidden" data-layer="wire"><img src="assets/img/bust-wire.webp" alt="Cyber Samurai — Wireframe" loading="lazy" width="800" height="1000"></div><div class="viewport__layer is-hidden" data-layer="topo"><img src="assets/img/bust-topo.webp" alt="Cyber Samurai — Topology" loading="lazy" width="800" height="1000"></div>
+            <div class="viewport__hud"><span data-mode-label>Beauty</span><span>48,212 tris</span></div>
+            <span class="viewport__corner viewport__corner--tl"></span><span class="viewport__corner viewport__corner--tr"></span><span class="viewport__corner viewport__corner--bl"></span><span class="viewport__corner viewport__corner--br"></span>
+          </div>
+        </div></div><div class="bd-row bd-row--5-7"><div class="panel" data-reveal>
+          <div class="panel__head"><h3 class="panel__title">Polycount & budgets</h3><span class="mono muted">Game-ready</span></div>
+          <dl class="metrics"><div class="metric"><dt>Triangles</dt><dd>48,212 <small>LOD0</small></dd><div class="meter" aria-hidden="true"><span style="--v:62%"></span></div></div><div class="metric"><dt>Vertices</dt><dd>26,904</dd><div class="meter" aria-hidden="true"><span style="--v:48%"></span></div></div><div class="metric"><dt>High-poly</dt><dd>18.4M <small>polys</small></dd><div class="meter" aria-hidden="true"><span style="--v:100%"></span></div></div><div class="metric"><dt>Texture sets</dt><dd>3 <small>× 4K</small></dd><div class="meter" aria-hidden="true"><span style="--v:75%"></span></div></div><div class="metric"><dt>Texel density</dt><dd>10.24 <small>px/cm</small></dd><div class="meter" aria-hidden="true"><span style="--v:80%"></span></div></div><div class="metric"><dt>Bones</dt><dd>112</dd><div class="meter" aria-hidden="true"><span style="--v:55%"></span></div></div><div class="metric"><dt>Materials</dt><dd>3</dd><div class="meter" aria-hidden="true"><span style="--v:30%"></span></div></div><div class="metric"><dt>LODs</dt><dd>4</dd><div class="meter" aria-hidden="true"><span style="--v:40%"></span></div></div></dl>
+          <div class="lods"><span class="lods__title">LOD chain</span><div class="lod"><span>LOD0</span><div class="meter" aria-hidden="true"><span style="--v:100%"></span></div><span>48.2K</span></div><div class="lod"><span>LOD1</span><div class="meter" aria-hidden="true"><span style="--v:50%"></span></div><span>24.1K</span></div><div class="lod"><span>LOD2</span><div class="meter" aria-hidden="true"><span style="--v:23%"></span></div><span>11.0K</span></div><div class="lod"><span>LOD3</span><div class="meter" aria-hidden="true"><span style="--v:10%"></span></div><span>4.8K</span></div></div>
+        </div><div class="panel" data-reveal>
+          <div class="panel__head"><h3 class="panel__title">UV layout</h3><span class="mono muted">0–1 space</span></div>
+          <div class="panel__body uv">
+            <div class="uv__map"><img src="assets/img/uv-layout.webp" alt="Cyber Samurai UV layout" loading="lazy" width="1024" height="1024"><span class="uv__axis uv__axis--u">U →</span><span class="uv__axis uv__axis--v">↑ V</span></div>
+            <ul class="legend"><li><span>UDIM</span><span>1001</span></li><li><span>Islands</span><span>64</span></li><li><span>Packing</span><span>78.4%</span></li><li><span>Padding</span><span>16 px</span></li><li><span>Unwrap</span><span>RizomUV</span></li></ul>
+          </div>
+        </div></div><div class="bd-row bd-row--1"><div class="panel" data-reveal>
+          <div class="panel__head"><h3 class="panel__title">PBR texture breakdown</h3><span class="mono muted">Metal / Rough</span></div>
+          <div class="pbr" data-pbr>
+            <figure class="pbr__preview" id="pbr-home" role="tabpanel"><img src="assets/img/pbr-albedo.webp" alt="Albedo map" data-map-img="albedo" loading="lazy" width="768" height="768"><img src="assets/img/pbr-normal.webp" alt="Normal map" data-map-img="normal" loading="lazy" width="768" height="768" class="is-hidden"><img src="assets/img/pbr-roughness.webp" alt="Roughness map" data-map-img="roughness" loading="lazy" width="768" height="768" class="is-hidden"><img src="assets/img/pbr-metallic.webp" alt="Metallic map" data-map-img="metallic" loading="lazy" width="768" height="768" class="is-hidden"><img src="assets/img/pbr-ao.webp" alt="Ambient Occlusion map" data-map-img="ao" loading="lazy" width="768" height="768" class="is-hidden"><span class="pbr__badge">Albedo · sRGB · 4K</span></figure>
+            <div class="pbr__side">
+              <div class="pbr__list" role="tablist" aria-label="Texture maps" aria-orientation="vertical"><button class="pbr__tab" role="tab" data-map="albedo" data-badge="Albedo · sRGB · 4K" aria-selected="true" aria-controls="pbr-home"><span class="pbr__thumb"><img src="assets/img/pbr-albedo.webp" alt="" loading="lazy" width="44" height="44"></span><span class="pbr__name">Albedo<span class="pbr__desc">Base colour, no lighting</span></span><span class="pbr__fmt">sRGB · 4K</span></button><button class="pbr__tab" role="tab" data-map="normal" data-badge="Normal · Linear · 4K" aria-selected="false" aria-controls="pbr-home"><span class="pbr__thumb"><img src="assets/img/pbr-normal.webp" alt="" loading="lazy" width="44" height="44"></span><span class="pbr__name">Normal<span class="pbr__desc">Baked from high-poly, OpenGL Y+</span></span><span class="pbr__fmt">Linear · 4K</span></button><button class="pbr__tab" role="tab" data-map="roughness" data-badge="Roughness · Linear · 4K" aria-selected="false" aria-controls="pbr-home"><span class="pbr__thumb"><img src="assets/img/pbr-roughness.webp" alt="" loading="lazy" width="44" height="44"></span><span class="pbr__name">Roughness<span class="pbr__desc">Micro-surface response</span></span><span class="pbr__fmt">Linear · 4K</span></button><button class="pbr__tab" role="tab" data-map="metallic" data-badge="Metallic · Linear · 2K" aria-selected="false" aria-controls="pbr-home"><span class="pbr__thumb"><img src="assets/img/pbr-metallic.webp" alt="" loading="lazy" width="44" height="44"></span><span class="pbr__name">Metallic<span class="pbr__desc">Conductor mask</span></span><span class="pbr__fmt">Linear · 2K</span></button><button class="pbr__tab" role="tab" data-map="ao" data-badge="Ambient Occlusion · Linear · 2K" aria-selected="false" aria-controls="pbr-home"><span class="pbr__thumb"><img src="assets/img/pbr-ao.webp" alt="" loading="lazy" width="44" height="44"></span><span class="pbr__name">Ambient Occlusion<span class="pbr__desc">Baked cavity + AO</span></span><span class="pbr__fmt">Linear · 2K</span></button></div>
+              <dl class="pbr__info"><div><dt>Workflow</dt><dd>Metal / Roughness</dd></div><div><dt>Texture sets</dt><dd>Head · Armour · Cloth (3 × 4K)</dd></div><div><dt>Authoring</dt><dd>Substance 3D Painter</dd></div></dl>
             </div>
-        </div>
+          </div>
+        </div></div></div>
+      </div>
     </section>
 
-    <!-- Stats / Experience (Optional) -->
-    <!-- Stats / Experience -->
-    <section id="stats">
-        <div class="container stats-grid">
-            <div class="stat-card reveal">
-                <div class="stat-content">
-                    <h3>5+</h3>
-                    <p data-i18n="stats.years">Років досвіду</p>
-                </div>
-            </div>
-            <div class="stat-card reveal">
-                <div class="stat-content">
-                    <h3>50+</h3>
-                    <p data-i18n="stats.models">Моделей створено</p>
-                </div>
-            </div>
-            <div class="stat-card reveal">
-                <div class="stat-content">
-                    <h3>12</h3>
-                    <p data-i18n="stats.projects">Ігрових проєктів</p>
-                </div>
-            </div>
-        </div>
+    <section class="section" id="pipeline" tabindex="-1">
+      <div class="container">
+      <div class="section-head">
+        <div><span class="eyebrow">Tech stack & pipeline</span><h2 class="h2" data-split><span class="split-line"><span>Sculpt to engine,</span></span><span class="split-line"><span>no shortcuts.</span></span></h2></div>
+        <div><span class="section-index">03</span></div>
+      </div>
+        <div class="pipeline" aria-label="Production pipeline — hover a stage to highlight its tools"><button class="stage" data-stage-tools="blender zbrush"><span class="stage__num">01</span><span class="stage__name">Concept</span><span class="stage__tools">Blender · ZBrush</span></button><button class="stage" data-stage-tools="zbrush"><span class="stage__num">02</span><span class="stage__name">Sculpt</span><span class="stage__tools">ZBrush</span></button><button class="stage" data-stage-tools="blender maya"><span class="stage__num">03</span><span class="stage__name">Retopo</span><span class="stage__tools">Blender · Maya</span></button><button class="stage" data-stage-tools="rizom maya"><span class="stage__num">04</span><span class="stage__name">UV</span><span class="stage__tools">RizomUV · Maya</span></button><button class="stage" data-stage-tools="marvelous zbrush"><span class="stage__num">05</span><span class="stage__name">Cloth</span><span class="stage__tools">Marvelous Designer · ZBrush</span></button><button class="stage" data-stage-tools="substance marmoset"><span class="stage__num">06</span><span class="stage__name">Bake & Texture</span><span class="stage__tools">Substance 3D Painter · Marmoset Toolbag</span></button><button class="stage" data-stage-tools="ue5 marmoset"><span class="stage__num">07</span><span class="stage__name">Engine</span><span class="stage__tools">Unreal Engine 5 · Marmoset Toolbag</span></button></div>
+        <div class="tools" data-reveal-group="0.05"><div class="tool" data-tool="zbrush" data-reveal>
+          <span class="tool__icon"><img src="assets/icons/icons8-zbrush-100.png" alt="" width="30" height="30" loading="lazy"></span>
+          <div><div class="tool__name">ZBrush</div><div class="tool__role">High-poly sculpting</div></div>
+          <div class="tool__level" role="img" aria-label="Proficiency 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+        </div><div class="tool" data-tool="blender" data-reveal>
+          <span class="tool__icon"><img src="assets/icons/icons8-blender-3d-48.png" alt="" width="30" height="30" loading="lazy"></span>
+          <div><div class="tool__name">Blender</div><div class="tool__role">Retopo, UVs, look-dev</div></div>
+          <div class="tool__level" role="img" aria-label="Proficiency 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+        </div><div class="tool" data-tool="maya" data-reveal>
+          <span class="tool__icon"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#37a5cc"/><text x="16" y="21" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="16" fill="#0a0a0b">M</text></svg></span>
+          <div><div class="tool__name">Maya</div><div class="tool__role">Modelling & rigging prep</div></div>
+          <div class="tool__level" role="img" aria-label="Proficiency 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+        </div><div class="tool" data-tool="substance" data-reveal>
+          <span class="tool__icon"><img src="assets/icons/icons8-substance-painter-64.png" alt="" width="30" height="30" loading="lazy"></span>
+          <div><div class="tool__name">Substance 3D Painter</div><div class="tool__role">PBR texturing</div></div>
+          <div class="tool__level" role="img" aria-label="Proficiency 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+        </div><div class="tool" data-tool="marmoset" data-reveal>
+          <span class="tool__icon"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#ff6a2b"/><text x="16" y="21" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="12" fill="#0a0a0b">MT</text></svg></span>
+          <div><div class="tool__name">Marmoset Toolbag</div><div class="tool__role">Baking & presentation</div></div>
+          <div class="tool__level" role="img" aria-label="Proficiency 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+        </div><div class="tool" data-tool="rizom" data-reveal>
+          <span class="tool__icon"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#3fc7b4"/><text x="16" y="21" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="16" fill="#0a0a0b">R</text></svg></span>
+          <div><div class="tool__name">RizomUV</div><div class="tool__role">Unwrapping & packing</div></div>
+          <div class="tool__level" role="img" aria-label="Proficiency 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+        </div><div class="tool" data-tool="marvelous" data-reveal>
+          <span class="tool__icon"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#e9c46a"/><text x="16" y="21" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="12" fill="#0a0a0b">MD</text></svg></span>
+          <div><div class="tool__name">Marvelous Designer</div><div class="tool__role">Cloth simulation</div></div>
+          <div class="tool__level" role="img" aria-label="Proficiency 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+        </div><div class="tool" data-tool="ue5" data-reveal>
+          <span class="tool__icon"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#ededea"/><text x="16" y="21.5" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="15" fill="#0a0a0b">U</text></svg></span>
+          <div><div class="tool__name">Unreal Engine 5</div><div class="tool__role">Real-time integration</div></div>
+          <div class="tool__level" role="img" aria-label="Proficiency 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+        </div></div>
+      </div>
     </section>
 
-    <!-- Contact Section -->
-    <section id="contact">
-        <div class="container">
-            <h2 class="reveal" data-i18n="contact.heading">Зв'язатись зі мною</h2>
-            <div class="contact-container reveal">
-                <div class="contact-info">
-                    <h3 data-i18n="contact.title">Давайте створимо щось круте!</h3>
-                    <p data-i18n="contact.subtitle">Я відкритий до фрілансу та співпраці зі студіями.</p>
-                    <div class="contact-item">
-                        <i class="fa-solid fa-envelope"></i>
-                        <span>stroichzahar161218@gmail.com</span>
-                    </div>
-                    <div class="contact-item">
-                        <i class="fa-solid fa-location-dot"></i>
-                        <span>Lublin, Poland</span>
-                    </div>
-                    <div class="social-links">
-                        <a href="https://www.artstation.com/zakhariistroich" class="social-btn" target="_blank"
-                            rel="noopener noreferrer"><i class="fa-brands fa-artstation"></i></a>
-                        <a href="https://www.instagram.com/stroichz/" class="social-btn" target="_blank"
-                            rel="noopener noreferrer"><i class="fa-brands fa-instagram"></i></a>
-                        <a href="https://www.linkedin.com/in/zakharii-stroich-74822633a/" class="social-btn"
-                            target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-linkedin"></i></a>
-                    </div>
-                </div>
-
-                <!-- 5. Contact Form (Netlify) -->
-                <form id="contactForm" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
-                    <input type="hidden" name="form-name" value="contact">
-                    <input type="hidden" name="bot-field">
-                    <div class="form-group">
-                        <label data-i18n="form.nameLabel">Ваше Ім'я</label>
-                        <input type="text" name="name" required placeholder="Іван Іванов"
-                            data-i18n-placeholder="form.namePlaceholder">
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="form.emailLabel">Email</label>
-                        <input type="email" name="email" required placeholder="ivan@example.com"
-                            data-i18n-placeholder="form.emailPlaceholder">
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="form.messageLabel">Повідомлення</label>
-                        <textarea rows="5" name="message" required placeholder="Розкажіть про ваш проєкт..."
-                            data-i18n-placeholder="form.messagePlaceholder"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;"
-                        data-i18n="form.submit">Надіслати</button>
-                </form>
-            </div>
+    <section class="section" id="about" tabindex="-1">
+      <div class="container about">
+        <figure class="about__media" data-reveal>
+          <img src="assets/img/avatar.jpg" alt="Portrait of Zakharii Stroich" loading="lazy" width="764" height="1024" data-parallax="0.12">
+          <figcaption class="mono">Lublin, PL</figcaption>
+        </figure>
+        <div class="about__body">
+          <span class="eyebrow">04 — About</span>
+          <h2 class="h2" data-split><span class="split-line"><span>Art direction</span></span><span class="split-line"><span>meets tech.</span></span></h2>
+          <p class="lead" data-reveal>I'm Zakharii, a character and technical artist from Lublin, Poland. I bridge the gap between sculpting and engine: assets that look like the concept and still respect the frame budget.</p>
+          <p class="muted" data-reveal>My focus is anatomy, hard-surface armour and stylised realism — with deformation-ready topology, efficient UVs and materials that hold up under any lighting.</p>
+          <div class="stats" data-reveal>
+            <div class="stat"><div class="stat__num" data-count="5" data-suffix="+">5+</div><div class="stat__label">Years in 3D</div></div>
+            <div class="stat"><div class="stat__num" data-count="50" data-suffix="+">50+</div><div class="stat__label">Models shipped</div></div>
+            <div class="stat"><div class="stat__num" data-count="12">12</div><div class="stat__label">Game projects</div></div>
+          </div>
         </div>
+      </div>
     </section>
 
-    <footer>
-        <p>&copy; 2026 Zakharii Stroich. <span data-i18n="footer.role">3D Artist & Designer.</span></p>
-        <div id="react-root" class="react-badge"></div>
-    </footer>
-
-    <!-- JS Functionality linked via indices above -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="script.js"></script>
+    <section class="section" id="contact" tabindex="-1" style="border-top: 1px solid var(--line);">
+      <div class="container contact">
+        <div>
+          <span class="eyebrow">05 — Contact</span>
+          <h2 class="display contact__title" data-split><span class="split-line"><span>Let's build</span></span><span class="split-line"><span>something <span class="accent">real.</span></span></span></h2>
+          <a class="contact__email" href="mailto:stroichzahar161218@gmail.com" data-copy="stroichzahar161218@gmail.com" data-cursor="Copy">stroichzahar161218@gmail.com <span class="mono" data-copy-label>Click to copy</span></a>
+          <div class="socials"><a class="chip" href="https://www.artstation.com/zakhariistroich" target="_blank" rel="noopener">ArtStation ↗</a><a class="chip" href="https://www.instagram.com/stroichz/" target="_blank" rel="noopener">Instagram ↗</a><a class="chip" href="https://www.linkedin.com/in/zakharii-stroich-74822633a/" target="_blank" rel="noopener">LinkedIn ↗</a></div>
+        </div>
+        <form class="form" data-mailto-form="stroichzahar161218@gmail.com" data-reveal novalidate>
+          <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name" required placeholder="Your name"></div>
+          <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required placeholder="you@studio.com"></div>
+          <div class="field"><label for="f-type">Project type</label><select id="f-type" name="type"><option>Character</option><option>Hard-surface props</option><option>Environment</option><option>Full-time role</option></select></div>
+          <div class="field"><label for="f-msg">Message</label><textarea id="f-msg" name="message" rows="5" required placeholder="Scope, engine, timeline…"></textarea></div>
+          <button class="btn btn--primary" type="submit" data-magnetic="0.2">Send message <span class="btn__icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.5"/></svg></span></button>
+          <p class="form__note" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span>© <span data-year>2026</span> Zakharii Stroich. All rights reserved.</span>
+      <span class="mono">Lublin, PL · Character & Technical Artist</span>
+      <a class="to-top" href="#top">Back to top <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 14V3m-4 4 4-4 4 4" stroke="currentColor" stroke-width="1.5"/></svg></a>
+    </div>
+  </footer>
+  <!-- Optional enhancement libraries (site works without them) -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
+  <script src="js/core/utils.js" defer></script>
+  <script src="js/modules/smooth-scroll.js" defer></script>
+  <script src="js/modules/reveal.js" defer></script>
+  <script src="js/modules/cursor.js" defer></script>
+  <script src="js/modules/magnetic.js" defer></script>
+  <script src="js/modules/compare.js" defer></script>
+  <script src="js/modules/segmented.js" defer></script>
+  <script src="js/modules/hero-stage.js" defer></script>
+  <script src="js/modules/ui.js" defer></script>
+  <script src="js/main.js" defer></script>
 </body>
-
 </html>
