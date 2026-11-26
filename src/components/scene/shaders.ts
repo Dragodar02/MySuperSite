@@ -134,7 +134,7 @@ export const starFragmentShader = /* glsl */ `
 `;
 
 // ============================================================================
-// GPGPU SIMULATION SHADERS (Velocity + Lifecycle State, then Symplectic Position)
+// GPGPU SIMULATION SHADERS (Gentle Hover + Click Hop + Scroll-Down Gravity)
 // ============================================================================
 
 export const simQuadVertexShader = /* glsl */ `
@@ -150,10 +150,10 @@ export const velFragmentShader = /* glsl */ `
   precision highp float;
 
   uniform float uInit;
-  uniform sampler2D uHomeTex; // r: homeX, g: seedZ, b: scaleSeed, a: role (0 = meadow, 1 = sky petal)
-  uniform sampler2D uSeedTex; // r: colorSeed, g: fallSpeedSeed, b: baseAngle, a: petalVariant
-  uniform sampler2D uPrevOffset; // rgb: offsetXYZ, a: spinAngle
-  uniform sampler2D uPrevVel;    // rgb: velXYZ, a: stateTimer
+  uniform sampler2D uHomeTex;     // r: homeX, g: seedZ, b: scaleSeed, a: role (0 = meadow, 1 = sky petal)
+  uniform sampler2D uSeedTex;     // r: colorSeed, g: mass/speedSeed, b: baseAngle, a: petalVariant
+  uniform sampler2D uPrevOffset;  // rgb: offsetXYZ, a: spinAngle
+  uniform sampler2D uPrevVel;     // rgb: velXYZ, a: activityEnergy
 
   uniform float uTime;
   uniform float uDt;
@@ -164,11 +164,23 @@ export const velFragmentShader = /* glsl */ `
 
   uniform mat4 uViewProjMatrix;
   uniform vec2 uViewportSize;
-  uniform vec2 uVortexCenterPx;
-  uniform float uVortexRadiusPx;
-  uniform float uVortexActive;
-  uniform vec3 uVortexRayOrigin;
-  uniform vec3 uVortexRayDir;
+
+  // Subtle hover brush (no hurricane)
+  uniform vec2 uHoverCenterPx;
+  uniform float uHoverRadiusPx;
+  uniform float uHoverActive;
+  uniform vec3 uHoverRayOrigin;
+  uniform vec3 uHoverRayDir;
+
+  // Click gentle hop impulse
+  uniform vec2 uClickCenterPx;
+  uniform float uClickRadiusPx;
+  uniform float uClickTrigger;
+  uniform vec3 uClickRayOrigin;
+  uniform vec3 uClickRayDir;
+
+  // Scroll-down gravity surge
+  uniform float uScrollGravity;
 
   varying vec2 vUv;
 
@@ -182,8 +194,7 @@ export const velFragmentShader = /* glsl */ `
 
     if (uInit > 0.5) {
       if (isSkyPetal > 0.5) {
-        float initFall = -mix(0.38, 0.82, seedData.g);
-        gl_FragColor = vec4(0.0, initFall, 0.0, -2.0);
+        gl_FragColor = vec4(0.0, -mix(0.38, 0.82, seedData.g), 0.0, 1.0);
       } else {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
       }
@@ -196,7 +207,7 @@ export const velFragmentShader = /* glsl */ `
 
     if (wrappedZ) {
       if (isSkyPetal > 0.5) {
-        gl_FragColor = vec4(0.0, -mix(0.38, 0.82, seedData.g), 0.0, -2.0);
+        gl_FragColor = vec4(0.0, -mix(0.38, 0.82, seedData.g), 0.0, 1.0);
       } else {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
       }
@@ -208,7 +219,7 @@ export const velFragmentShader = /* glsl */ `
 
     vec3 offset = prevOff.xyz;
     vec3 vel = prevVelState.xyz;
-    float timer = prevVelState.w;
+    float energy = prevVelState.w;
 
     float zCam = uZFar + currRelZ;
     float zWorld = zCam - uTravel;
@@ -218,135 +229,155 @@ export const velFragmentShader = /* glsl */ `
 
     vec3 curPos = vec3(xWorld, homeY, zCam) + offset;
 
-    // Screen-space projection for ~150-250px lazy vortex check
-    float vortexInfluence = 0.0;
-    vec3 vortexTargetVel = vec3(0.0);
-
-    if (uVortexActive > 0.01) {
-      vec4 clipPos = uViewProjMatrix * vec4(curPos, 1.0);
-      if (clipPos.w > 0.25) {
-        vec2 ndc = clipPos.xy / clipPos.w;
-        vec2 screenPx = (ndc * 0.5 + 0.5) * uViewportSize;
-        float distPx = length(screenPx - uVortexCenterPx);
-
-        if (distPx < uVortexRadiusPx) {
-          float u = clamp(distPx / uVortexRadiusPx, 0.0, 1.0);
-          // Smooth C1 bell falloff to 0 at edge of vortex radius
-          float radialFalloff = (1.0 - u) * (1.0 - u) * (1.0 + 2.0 * u);
-          float coreSmooth = smoothstep(0.0, 0.10, u);
-          vortexInfluence = radialFalloff * uVortexActive;
-
-          // 3D vortex axis point at the particle's exact distance from the camera
-          float camDist = length(curPos - uVortexRayOrigin);
-          vec3 axisPoint = uVortexRayOrigin + uVortexRayDir * camDist;
-          vec3 rel = curPos - axisPoint;
-
-          vec2 relXZ = rel.xz;
-          float rXZ = length(relXZ);
-          vec2 radDir = (rXZ > 0.001)
-            ? (relXZ / rXZ)
-            : vec2(cos(seedData.b), sin(seedData.b));
-
-          // Fast whirlwind tangential spin (faster closer to the eye) + centripetal funnel pull
-          vec2 tangDir = vec2(-radDir.y, radDir.x);
-          float eyeBoost = mix(1.55, 0.85, u);
-          float swirlSpeed = mix(8.8, 13.8, seedData.r) * coreSmooth * eyeBoost;
-          float inwardPull = (u > 0.16)
-            ? (-mix(2.6, 4.3, u) * coreSmooth)
-            : (1.25 * (0.16 - u));
-
-          vec2 horizVel = tangDir * swirlSpeed + radDir * inwardPull;
-
-          // Energetic upward funnel lift, capped smoothly at vortex top
-          float heightCap = clamp(1.0 - offset.y / 4.6, 0.0, 1.0);
-          float liftSpeed = mix(1.55, 3.10, seedData.g) * heightCap;
-
-          vortexTargetVel = vec3(horizVel.x, liftSpeed, horizVel.y);
-        }
-      }
+    // Project particle to screen space for hover brush & click hop checks
+    vec4 clipPos = uViewProjMatrix * vec4(curPos, 1.0);
+    bool onScreen = clipPos.w > 0.25;
+    vec2 screenPx = vec2(-99999.0);
+    if (onScreen) {
+      vec2 ndc = clipPos.xy / clipPos.w;
+      screenPx = (ndc * 0.5 + 0.5) * uViewportSize;
     }
 
     // Autonomous ambient sky-drifting petals (~1.5% of population)
     if (isSkyPetal > 0.5) {
-      if (vortexInfluence > 0.05) {
-        vel = mix(vel, vortexTargetVel, 1.0 - exp(-11.0 * uDt * (0.35 + vortexInfluence)));
-      } else {
-        float swayFreq = mix(1.2, 2.5, seedData.b * 0.15);
-        float swayAmp  = mix(0.32, 0.78, seedData.r);
-        float targetVx = cos(uTime * swayFreq + seedData.a * 6.28318) * swayAmp;
-        float targetVz = sin(uTime * swayFreq * 0.8 + seedData.r * 6.28318) * (swayAmp * 0.6);
-        float targetVy = -mix(0.38, 0.82, seedData.g);
+      float swayFreq = mix(1.2, 2.5, seedData.b * 0.15);
+      float swayAmp  = mix(0.32, 0.78, seedData.r);
+      float targetVx = cos(uTime * swayFreq + seedData.a * 6.28318) * swayAmp;
+      float targetVz = sin(uTime * swayFreq * 0.8 + seedData.r * 6.28318) * (swayAmp * 0.6);
+      float baseFall = -mix(0.38, 0.82, seedData.g);
 
-        vel.x = mix(vel.x, targetVx, 1.0 - exp(-2.2 * uDt));
-        vel.z = mix(vel.z, targetVz, 1.0 - exp(-2.2 * uDt));
-        vel.y = mix(vel.y, targetVy, 1.0 - exp(-2.0 * uDt));
+      vel.x = mix(vel.x, targetVx, 1.0 - exp(-2.2 * uDt));
+      vel.z = mix(vel.z, targetVz, 1.0 - exp(-2.2 * uDt));
+      vel.y = mix(vel.y, baseFall, 1.0 - exp(-2.0 * uDt));
+
+      // Scroll-down gravity also accelerates falling sky petals
+      if (uScrollGravity > 0.01) {
+        vel.y -= uScrollGravity * mix(5.0, 10.5, seedData.g) * uDt;
       }
 
-      gl_FragColor = vec4(vel, -2.0);
+      // Click hop also gives nearby sky petals a playful upward bounce
+      if (onScreen && uClickTrigger > 0.5) {
+        float dClick = length(screenPx - uClickCenterPx);
+        if (dClick < uClickRadiusPx) {
+          float wClick = pow(1.0 - dClick / uClickRadiusPx, 1.35);
+          vel.y += mix(2.0, 3.4, seedData.g) * wClick;
+        }
+      }
+
+      gl_FragColor = vec4(vel, 1.0);
       return;
     }
 
-    // Meadow blossom 4-stage state machine:
-    // 1) Caught in lazy cursor vortex -> fast spiral whirlwind + funnel lift
-    if (vortexInfluence > 0.045) {
-      float blend = 1.0 - exp(-11.5 * uDt * (0.35 + vortexInfluence));
-      vel = mix(vel, vortexTargetVel, blend);
-      timer = 1.0; // Start/refresh post-cursor inertia countdown
-    }
-    // 2) Cursor moved away -> 2 to 4 seconds of swirling inertia (damping ~0.97 per frame)
-    else if (timer >= 1.0) {
-      timer += uDt;
-      float inertiaDuration = mix(2.1, 3.9, seedData.r);
+    // ========================================================================
+    // MEADOW BLOSSOM PHYSICS:
+    // 1. Subtle gentle reaction to cursor hover (soft meadow brush, no vortex)
+    // ========================================================================
+    if (onScreen && uHoverActive > 0.01) {
+      float dHover = length(screenPx - uHoverCenterPx);
+      if (dHover < uHoverRadiusPx) {
+        float u = clamp(dHover / uHoverRadiusPx, 0.0, 1.0);
+        float softFalloff = (1.0 - u) * (1.0 - u) * uHoverActive;
 
-      // Damping ~0.97 per 60fps frame
-      float frameDamping = pow(0.970, uDt * 60.0);
-      vel *= frameDamping;
+        float camDist = length(curPos - uHoverRayOrigin);
+        vec3 hoverPt = uHoverRayOrigin + uHoverRayDir * camDist;
+        vec2 relXZ = curPos.xz - hoverPt.xz;
+        float rXZ = length(relXZ);
+        vec2 pushDir = (rXZ > 0.001)
+          ? (relXZ / rXZ)
+          : vec2(cos(seedData.b), sin(seedData.b));
 
-      // Residual hurricane curl smoothly unwinding from fast spin
-      float inertiaProgress = clamp((timer - 1.0) / inertiaDuration, 0.0, 1.0);
-      float curlAngularVel = mix(4.4, 0.65, inertiaProgress);
-      float ca = cos(curlAngularVel * uDt);
-      float sa = sin(curlAngularVel * uDt);
-      vel.xz = mat2(ca, -sa, sa, ca) * vel.xz;
+        // Gentle parting nudge & whisper-light bob
+        float maxHoverDisp = clamp(1.0 - length(offset.xz) / 0.85, 0.0, 1.0);
+        vel.xz += pushDir * (3.2 * softFalloff * maxHoverDisp * uDt);
 
-      // Soft buoyant vertical settle before transitioning into petal descent
-      vel.y -= 0.14 * uDt;
+        float maxHoverLift = clamp(1.0 - offset.y / 0.42, 0.0, 1.0);
+        vel.y += 2.1 * softFalloff * maxHoverLift * uDt;
 
-      if (timer >= 1.0 + inertiaDuration) {
-        timer = -2.0; // Enter slow petal-fall phase
+        energy = max(energy, softFalloff * 0.45);
       }
     }
-    // 3) Slow petal descent: individual fall speed + sinusoidal side-to-side sway
-    else if (timer <= -1.5) {
-      if (offset.y > 0.025) {
-        float terminalFall = -mix(0.42, 1.08, seedData.g);
-        float swayFreq = mix(1.6, 3.3, fract(seedData.b));
-        float swayAmp  = mix(0.36, 0.88, seedData.r);
 
-        float swayVx = cos(uTime * swayFreq + seedData.a * 6.28318) * swayAmp;
-        float swayVz = sin(uTime * swayFreq * 0.76 + seedData.r * 6.28318) * (swayAmp * 0.65);
+    // ========================================================================
+    // 2. Click Interaction: Gentle buoyant hop ("легенький стрибок")
+    // ========================================================================
+    if (onScreen && uClickTrigger > 0.5) {
+      float dClick = length(screenPx - uClickCenterPx);
+      if (dClick < uClickRadiusPx) {
+        float u = clamp(dClick / uClickRadiusPx, 0.0, 1.0);
+        // Smooth bell curve so center hops highest and edges hop softly
+        float hopWeight = (1.0 - u) * (1.0 - u * 0.65);
 
-        vel.x = mix(vel.x, swayVx, 1.0 - exp(-3.0 * uDt));
-        vel.z = mix(vel.z, swayVz, 1.0 - exp(-3.0 * uDt));
-        vel.y = mix(vel.y, terminalFall, 1.0 - exp(-2.6 * uDt));
+        float camDist = length(curPos - uClickRayOrigin);
+        vec3 clickPt = uClickRayOrigin + uClickRayDir * camDist;
+        vec2 relXZ = curPos.xz - clickPt.xz;
+        float rXZ = length(relXZ);
+        vec2 radDir = (rXZ > 0.001)
+          ? (relXZ / rXZ)
+          : vec2(cos(seedData.b), sin(seedData.b));
+
+        // Buoyant upward hop impulse + slight organic outward bloom
+        float jumpImpulse = mix(2.25, 3.85, seedData.g) * hopWeight;
+        vel.y = max(vel.y, 0.0) + jumpImpulse;
+        vel.xz += radDir * (mix(0.35, 0.95, seedData.r) * hopWeight);
+
+        energy = 1.0;
+      }
+    }
+
+    // ========================================================================
+    // 3. Scroll-Down Gravity ("коли гортаю униз — піддаються гравітації")
+    // ========================================================================
+    if (uScrollGravity > 0.01) {
+      // Staggered per-flower weight so blossoms cascade down organically
+      float petalWeight = mix(6.5, 15.5, pow(seedData.g, 0.9));
+      float depthGuard = clamp(1.0 - (-offset.y) / 3.8, 0.0, 1.0);
+      vel.y -= uScrollGravity * petalWeight * depthGuard * uDt;
+
+      // Subtle aerodynamic flutter as gravity pulls them downward
+      float flutterX = cos(uTime * mix(1.8, 3.2, seedData.r) + seedData.b) * 0.85;
+      float flutterZ = sin(uTime * mix(1.5, 2.8, seedData.a) + seedData.r * 6.28) * 0.65;
+      vel.x += flutterX * uScrollGravity * uDt;
+      vel.z += flutterZ * uScrollGravity * uDt;
+
+      energy = max(energy, min(1.0, uScrollGravity * 0.85));
+    }
+
+    // ========================================================================
+    // 4. Vertical Gravity / Petal Settling & Elastic Meadow Recovery
+    // ========================================================================
+    if (offset.y > 0.004 || vel.y > 0.01) {
+      if (vel.y > 0.0) {
+        // Ascending phase of hop -> clean ballistic gravity arc
+        vel.y -= 6.6 * uDt;
       } else {
-        // Touchdown on the valley floor -> transition to smooth home return
-        vel = vec3(0.0);
-        timer = -0.5;
+        // Descending phase -> light petal air-resistance + gentle side flutter
+        vel.y -= 3.4 * uDt;
+        float maxFallSpeed = -mix(1.05, 1.95, seedData.g) - uScrollGravity * 3.5;
+        vel.y = max(vel.y, maxFallSpeed);
+
+        float sway = cos(uTime * mix(1.8, 3.0, seedData.r) + seedData.b) * 0.45;
+        vel.x += sway * uDt;
       }
-    }
-    // 4) Landed -> velocity stays zero while posShader glides flower smoothly home
-    else if (timer < 0.0) {
-      vel = vec3(0.0);
-      if (length(offset) < 0.008) {
-        timer = 0.0;
-      }
-    } else {
-      vel = vec3(0.0);
-      timer = 0.0;
+    } else if (offset.y < -0.004) {
+      // Pulled below resting valley height by scroll-down gravity:
+      // smoothly float back up to homeY as soon as scrolling eases
+      float recoveryGate = 1.0 - clamp(uScrollGravity * 0.85, 0.0, 0.90);
+      float springK = mix(5.0, 7.6, seedData.r) * recoveryGate;
+      float dampK   = 4.4;
+      vel.y += (-offset.y * springK - vel.y * dampK) * uDt;
     }
 
-    gl_FragColor = vec4(vel, timer);
+    // Horizontal spring-damper gently returning parted/hopped blossoms to their stem
+    vel.xz += (-offset.xz * 3.2 - vel.xz * 3.8) * uDt;
+
+    // Decay visual energy smoothly back to zero at rest
+    energy *= exp(-1.8 * uDt);
+    if (length(offset) < 0.004 && length(vel) < 0.008 && uScrollGravity < 0.01) {
+      vel = vec3(0.0);
+      energy = 0.0;
+    }
+
+    gl_FragColor = vec4(vel, energy);
   }
 `;
 
@@ -357,12 +388,13 @@ export const posFragmentShader = /* glsl */ `
   uniform sampler2D uHomeTex;
   uniform sampler2D uSeedTex;
   uniform sampler2D uPrevOffset; // rgb: offsetXYZ, a: spinAngle
-  uniform sampler2D uCurrVel;    // rgb: velXYZ, a: stateTimer
+  uniform sampler2D uCurrVel;    // rgb: velXYZ, a: activityEnergy
 
   uniform float uDt;
   uniform float uTravel;
   uniform float uPrevTravel;
   uniform float uFieldDepth;
+  uniform float uScrollGravity;
 
   varying vec2 vUv;
 
@@ -373,7 +405,6 @@ export const posFragmentShader = /* glsl */ `
 
     if (uInit > 0.5) {
       if (isSkyPetal > 0.5) {
-        // Scatter initial ambient sky petals across all altitudes from the first frame
         float startY = 0.8 + fract(seedData.r * 7.13 + seedData.a * 3.71) * 13.5;
         gl_FragColor = vec4(0.0, startY, 0.0, seedData.b);
       } else {
@@ -402,7 +433,6 @@ export const posFragmentShader = /* glsl */ `
     vec3 offset = prevOff.xyz;
     float spin = prevOff.w;
     vec3 vel = currVelState.xyz;
-    float timer = currVelState.w;
 
     float spinDir = (seedData.r > 0.5) ? 1.0 : -1.0;
 
@@ -412,7 +442,6 @@ export const posFragmentShader = /* glsl */ `
       offset.xz = clamp(offset.xz, vec2(-18.0), vec2(18.0));
       spin = mod(spin + spinDir * mix(0.85, 2.2, seedData.g) * uDt, 62.831853);
 
-      // Respawn high above once the petal reaches the valley meadow
       if (offset.y <= 0.05) {
         offset = vec3(
           (seedData.a - 0.5) * 4.0,
@@ -425,41 +454,31 @@ export const posFragmentShader = /* glsl */ `
       return;
     }
 
-    // Active vortex, inertia, or petal descent
-    if (timer >= 1.0 || timer <= -1.5) {
-      offset += vel * uDt;
-      offset.y = max(0.0, offset.y);
-      offset.xz = clamp(offset.xz, vec2(-22.0), vec2(22.0));
+    float prevY = offset.y;
+    offset += vel * uDt;
 
-      // Rotate briskly around own axis while whipping inside the whirlwind, slower when fluttering down
-      float speedMag = length(vel);
-      float axialSpinRate = mix(1.4, 3.8, seedData.g) * (0.65 + min(speedMag * 0.48, 2.8));
-      spin = mod(spin + spinDir * axialSpinRate * uDt, 62.831853);
-    }
-    // Landed on the ground -> smoothly glide back to resting spot in the field
-    else if (timer < 0.0) {
+    // Cushion hop landing smoothly at ground y = 0 when scroll-gravity is not pulling below ground
+    if (prevY > 0.0 && offset.y <= 0.0 && uScrollGravity < 0.025) {
       offset.y = 0.0;
-      float returnLerp = pow(0.962, uDt * 60.0);
-      offset.xz *= returnLerp;
+    }
 
-      float rem = length(offset.xz);
-      if (rem > 0.0001) {
-        offset.xz -= (offset.xz / rem) * min(rem, 0.12 * uDt);
-      }
+    offset.y = clamp(offset.y, -4.0, 5.5);
+    offset.xz = clamp(offset.xz, vec2(-10.0), vec2(10.0));
 
-      // Gently settle axial spin back to rest
+    // Gentle axial spin while hopping or falling under scroll-gravity, easing back to rest
+    float speedMag = length(vel);
+    if (abs(offset.y) > 0.02 || speedMag > 0.05) {
+      float spinRate = mix(0.8, 2.4, seedData.g) * min(speedMag * 0.55, 2.2);
+      spin = mod(spin + spinDir * spinRate * uDt, 62.831853);
+    } else {
       if (spin > 31.415926) spin -= 62.831853;
-      spin *= pow(0.94, uDt * 60.0);
+      spin *= pow(0.92, uDt * 60.0);
       if (abs(spin) < 0.005) spin = 0.0;
       if (spin < 0.0) spin += 62.831853;
+    }
 
-      if (length(offset.xz) < 0.008) {
-        offset = vec3(0.0);
-        spin = 0.0;
-      }
-    } else {
+    if (length(offset) < 0.004 && speedMag < 0.008 && uScrollGravity < 0.01) {
       offset = vec3(0.0);
-      spin = 0.0;
     }
 
     gl_FragColor = vec4(offset, spin);
@@ -507,7 +526,6 @@ export const fieldVertexShader = /* glsl */ `
 
     float isSkyPetal = step(0.5, homeData.a);
 
-    // Hide autonomous falling sky petals when prefers-reduced-motion is active
     if (uReducedMotion > 0.5 && isSkyPetal > 0.5) {
       gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
       gl_PointSize = 0.0;
@@ -541,20 +559,17 @@ export const fieldVertexShader = /* glsl */ `
     gl_Position = projectionMatrix * mvPosition;
 
     float viewDepth = max(1.2, -mvPosition.z);
-    float airborneAmount = clamp(simOffset.y / 1.4, 0.0, 1.0);
+    float airborneAmount = clamp(abs(simOffset.y) / 1.1, 0.0, 1.0);
     if (isSkyPetal > 0.5) airborneAmount = 1.0;
 
-    // Perspective depth sizing: larger blossoms in the close foreground, fine delicate blooms in distance
-    float baseScale = mix(11.5, 25.5, pow(homeData.b, 0.82)) * (1.0 + airborneAmount * 0.18);
+    float baseScale = mix(11.5, 25.5, pow(homeData.b, 0.82)) * (1.0 + airborneAmount * 0.15);
     float pSize = clamp(baseScale * uPixelRatio * (18.5 / viewDepth), 1.5, 54.0 * uPixelRatio);
     gl_PointSize = pSize;
 
-    // Full-screen coverage: foreground stays opaque all the way past the bottom screen edge
     float farFade  = smoothstep(uZFar, uZFar + 20.0, finalPos.z);
     float nearFade = smoothstep(uZNear, uZNear - 2.2, finalPos.z);
     float sideFade = smoothstep(uHalfWidth, uHalfWidth - 10.0, abs(xWorld));
 
-    // Smooth entry/exit fade for autonomous sky-drifting petals
     float skyPetalFade = 1.0;
     if (isSkyPetal > 0.5) {
       skyPetalFade = smoothstep(0.08, 1.1, simOffset.y) * smoothstep(15.2, 12.2, simOffset.y) * 0.88;
@@ -568,7 +583,7 @@ export const fieldVertexShader = /* glsl */ `
     vSpin = spinAngle;
     vVariant = seedData.a;
     vElevation = normCrest;
-    vAirborne = max(airborneAmount, step(0.5, abs(velData.w)));
+    vAirborne = max(airborneAmount, clamp(velData.w, 0.0, 1.0));
     vDepth = viewDepth;
     vPointSize = pSize;
   }
@@ -597,9 +612,9 @@ export const fieldFragmentShader = /* glsl */ `
     float s = sin(vAngle);
     vec2 p = mat2(c, -s, s, c) * uv;
 
-    // Subtle 3D petal flutter foreshortening when airborne/falling
-    float flutterTilt = mix(1.0, 0.68 + 0.32 * abs(cos(vSpin * 0.75 + vSeed * 6.2831)), clamp(vAirborne, 0.0, 1.0));
-    p.y /= max(0.55, flutterTilt);
+    // Subtle 3D petal flutter foreshortening when hopping or falling
+    float flutterTilt = mix(1.0, 0.70 + 0.30 * abs(cos(vSpin * 0.75 + vSeed * 6.2831)), clamp(vAirborne, 0.0, 1.0));
+    p.y /= max(0.58, flutterTilt);
 
     float r = length(p);
 
@@ -614,7 +629,6 @@ export const fieldFragmentShader = /* glsl */ `
 
     float d = r - flowerRadius;
 
-    // Crisp anti-aliasing + subtle shallow depth-of-field softness on large close foreground flowers
     float foregroundBokeh = (1.0 - smoothstep(3.0, 9.5, vDepth)) * 0.14;
     float aa = clamp(2.1 / max(vPointSize, 2.0), 0.045, 0.28) + foregroundBokeh;
     float flowerMask = 1.0 - smoothstep(-aa, aa, d);
@@ -644,8 +658,8 @@ export const fieldFragmentShader = /* glsl */ `
     vec3 limeTone = mix(restingLime, activeLime, clamp(vAirborne * 0.65, 0.0, 0.65));
     petalColor = mix(petalColor, limeTone, isAccent);
 
-    // Subtle moonlit highlight when blossoms are lifted into the spinning whirlwind
-    petalColor = mix(petalColor, mix(vec3(0.56, 0.54, 0.68), activeLime, 0.28), clamp(vAirborne * 0.32, 0.0, 0.32));
+    // Subtle moonlit highlight when blossoms hop or fall
+    petalColor = mix(petalColor, mix(vec3(0.56, 0.54, 0.68), activeLime, 0.28), clamp(vAirborne * 0.30, 0.0, 0.30));
     petalColor *= petalShade * valleyLight;
 
     vec3 darkFlowerCore = mix(vec3(0.52, 0.50, 0.56), restingLime, 0.38);
@@ -655,7 +669,7 @@ export const fieldFragmentShader = /* glsl */ `
     vec3 finalColor = mix(petalColor, coreColor, coreMask * 0.88);
 
     float baseOpacity = mix(0.58, 0.80, isAccent);
-    float alpha = flowerMask * vAlpha * min(0.92, baseOpacity + vAirborne * 0.16);
+    float alpha = flowerMask * vAlpha * min(0.92, baseOpacity + vAirborne * 0.15);
 
     gl_FragColor = vec4(finalColor, alpha);
   }

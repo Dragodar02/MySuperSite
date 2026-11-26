@@ -24,12 +24,13 @@ import {
 const DESKTOP_TEX_SIZE = 320;
 const MOBILE_TEX_SIZE = 160;
 
-// Extended foreground Z-near (+12.4 right under camera at z = 13.0) so bottom half of screen is 100% lush
 const FIELD_HALF_WIDTH = 52;
 const FIELD_Z_FAR = -66;
 const FIELD_Z_NEAR = 12.4;
 const FIELD_DEPTH = FIELD_Z_NEAR - FIELD_Z_FAR; // 78.4
-const VORTEX_RADIUS_PX = 215; // ~150-250px screen-space vortex radius
+
+const HOVER_RADIUS_PX = 140; // Subtle, gentle cursor brush radius
+const CLICK_HOP_RADIUS_PX = 235; // Area of blossoms that hop gently on click
 
 interface SceneProps {
   isMobile: boolean;
@@ -167,29 +168,33 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
 
   const simSize = isMobile ? MOBILE_TEX_SIZE : DESKTOP_TEX_SIZE;
 
-  // Pointer & lazy vortex tail state (lerp ~0.05 per frame)
+  // Gentle cursor tracking + click hop queue + scroll-down gravity state
   const rawMousePx = useRef(new THREE.Vector2(0, 0));
-  const lazyMousePx = useRef(new THREE.Vector2(0, 0));
+  const smoothHoverPx = useRef(new THREE.Vector2(0, 0));
   const pointerNDC = useRef(new THREE.Vector2(0, 0));
   const pointerInside = useRef(false);
   const pointerHasMoved = useRef(false);
-  const pointerIdleTimeRef = useRef(10);
-  const vortexActiveRef = useRef(0);
+  const pointerMoveActivityRef = useRef(0);
+  const hoverActiveRef = useRef(0);
   const smoothParallax = useRef(new THREE.Vector2(0, 0));
 
+  // Pending click hop impulse (consumed cleanly in next simulation frame)
+  const pendingClickPx = useRef<THREE.Vector2 | null>(null);
+
+  // Scroll tracking (signed downward delta drives gravity pull)
   const lastScrollY = useRef(typeof window !== 'undefined' ? window.scrollY : 0);
   const scrollVelocityBoost = useRef(0);
+  const scrollDownGravityRef = useRef(0);
   const smoothScrollProgress = useRef(0);
   const travelRef = useRef(0);
-  const simInitializedRef = useRef(false);
   const pingPongIdxRef = useRef(0);
 
-  const raycaster = useMemo(() => new THREE.Raycaster(), []);
-  const lazyNDCVec = useMemo(() => new THREE.Vector2(), []);
+  const hoverRaycaster = useMemo(() => new THREE.Raycaster(), []);
+  const clickRaycaster = useMemo(() => new THREE.Raycaster(), []);
+  const tempNDCVec = useMemo(() => new THREE.Vector2(), []);
   const viewProjMatrix = useMemo(() => new THREE.Matrix4(), []);
 
   useEffect(() => {
-    // Camera positioned & tilted so valley blossoms fill the entire lower screen up to the foreground
     camera.position.set(0, 3.25, 13.0);
     camera.lookAt(0, -1.75, -22.0);
     camera.updateMatrixWorld();
@@ -201,11 +206,11 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
 
     const handlePointerMove = (e: PointerEvent) => {
       const px = e.clientX;
-      const py = window.innerHeight - e.clientY; // WebGL bottom-left pixel origin
+      const py = window.innerHeight - e.clientY;
       rawMousePx.current.set(px, py);
 
       if (!pointerHasMoved.current) {
-        lazyMousePx.current.set(px, py);
+        smoothHoverPx.current.set(px, py);
         pointerHasMoved.current = true;
       }
 
@@ -213,7 +218,17 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
       const ny = -(e.clientY / window.innerHeight) * 2 + 1;
       pointerNDC.current.set(nx, ny);
       pointerInside.current = true;
-      pointerIdleTimeRef.current = 0;
+      pointerMoveActivityRef.current = 1.0;
+    };
+
+    const handlePointerDown = (e: PointerEvent) => {
+      // Skip hop when focusing form inputs so typing remains calm
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('input, textarea, select')) return;
+
+      const px = e.clientX;
+      const py = window.innerHeight - e.clientY;
+      pendingClickPx.current = new THREE.Vector2(px, py);
     };
 
     const handlePointerLeave = () => {
@@ -225,22 +240,18 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     };
 
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('pointerdown', handlePointerDown, { passive: true });
     document.addEventListener('mouseleave', handlePointerLeave);
     window.addEventListener('blur', handleBlur);
 
     return () => {
       window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerdown', handlePointerDown);
       document.removeEventListener('mouseleave', handlePointerLeave);
       window.removeEventListener('blur', handleBlur);
     };
   }, [reducedMotion]);
 
-  /**
-   * Static particle attributes + GPGPU lookup textures:
-   * - Desktop: 320x320 = 102,400 particles | Mobile: 160x160 = 25,600 particles
-   * - Dense botanical clustering across the entire valley floor, foreground, and slopes
-   * - ~1.5% dedicated as autonomous ambient sky-drifting petals
-   */
   const simResources = useMemo(() => {
     const count = simSize * simSize;
     const homeArr = new Float32Array(count * 4);
@@ -252,7 +263,6 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     const meadowCount = count - skyPetalCount;
     const clusteredCount = Math.floor(meadowCount * 0.74);
 
-    // Rich botanical clusters concentrated across central/foreground valley + outer slopes
     const patchCount = isMobile ? 420 : 1450;
     const patches = new Array<{
       x: number;
@@ -263,7 +273,6 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     }>(patchCount);
 
     for (let p = 0; p < patchCount; p++) {
-      // Bias X slightly toward the central & foreground frustum corridor while covering wide horizon slopes
       const signed = (Math.random() - 0.5) * 2;
       const x =
         Math.sign(signed) *
@@ -288,11 +297,10 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
       let x = 0;
       let z = 0;
       let scaleSeed = 0.5;
-      let role = 0; // 0 = meadow flower, 1 = ambient falling sky petal
+      let role = 0;
       let colorSeed = Math.random();
 
       if (i < clusteredCount) {
-        // 1. Dense meadow flower clusters & micro-bouquets
         const patch = patches[i % patchCount];
         const angle = Math.random() * Math.PI * 2;
         const distNorm = Math.pow(Math.random(), 1.55);
@@ -326,7 +334,6 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
           (1 - distNorm * 0.42) * (0.45 + Math.random() * 0.65)
         );
       } else if (i < meadowCount) {
-        // 2. Continuous foreground-to-horizon meadow carpet eliminating any dark gaps
         const signed = (Math.random() - 0.5) * 2;
         x =
           Math.sign(signed) *
@@ -335,7 +342,6 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
         z = Math.random() * FIELD_DEPTH;
         scaleSeed = 0.3 + Math.random() * 0.68;
       } else {
-        // 3. Solitary ambient petals slowly drifting down from above across the viewport
         x = (Math.random() - 0.5) * 44;
         z = Math.random() * FIELD_DEPTH;
         scaleSeed = 0.45 + Math.random() * 0.55;
@@ -348,9 +354,9 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
       homeArr[i * 4 + 3] = role;
 
       seedArr[i * 4] = colorSeed;
-      seedArr[i * 4 + 1] = Math.random(); // individual fall speed seed
-      seedArr[i * 4 + 2] = Math.random() * Math.PI * 2; // base angle
-      seedArr[i * 4 + 3] = Math.random(); // 5- vs 6-petal variant
+      seedArr[i * 4 + 1] = Math.random();
+      seedArr[i * 4 + 2] = Math.random() * Math.PI * 2;
+      seedArr[i * 4 + 3] = Math.random();
 
       dummyPos[i * 3] = x;
       dummyPos[i * 3 + 1] = 0;
@@ -381,7 +387,6 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     seedTex.generateMipmaps = false;
     seedTex.needsUpdate = true;
 
-    // Detect Float vs HalfFloat FBO renderability
     const ctx = gl.getContext();
     const supportsFloatFBO = Boolean(
       gl.extensions.has('EXT_color_buffer_float') ||
@@ -404,7 +409,6 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     const rtVelA = new THREE.WebGLRenderTarget(simSize, simSize, rtOptions);
     const rtVelB = new THREE.WebGLRenderTarget(simSize, simSize, rtOptions);
 
-    // Offscreen GPGPU scenes & materials (Pass 1: Velocity/State, Pass 2: Symplectic Position/Spin)
     const orthoCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     const quadGeo = new THREE.PlaneGeometry(2, 2);
 
@@ -428,11 +432,17 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
         uZFar: { value: FIELD_Z_FAR },
         uViewProjMatrix: { value: new THREE.Matrix4() },
         uViewportSize: { value: new THREE.Vector2(1920, 1080) },
-        uVortexCenterPx: { value: new THREE.Vector2(-9999, -9999) },
-        uVortexRadiusPx: { value: VORTEX_RADIUS_PX },
-        uVortexActive: { value: 0 },
-        uVortexRayOrigin: { value: new THREE.Vector3() },
-        uVortexRayDir: { value: new THREE.Vector3(0, 0, -1) },
+        uHoverCenterPx: { value: new THREE.Vector2(-9999, -9999) },
+        uHoverRadiusPx: { value: HOVER_RADIUS_PX },
+        uHoverActive: { value: 0 },
+        uHoverRayOrigin: { value: new THREE.Vector3() },
+        uHoverRayDir: { value: new THREE.Vector3(0, 0, -1) },
+        uClickCenterPx: { value: new THREE.Vector2(-9999, -9999) },
+        uClickRadiusPx: { value: CLICK_HOP_RADIUS_PX },
+        uClickTrigger: { value: 0 },
+        uClickRayOrigin: { value: new THREE.Vector3() },
+        uClickRayDir: { value: new THREE.Vector3(0, 0, -1) },
+        uScrollGravity: { value: 0 },
       },
     });
 
@@ -452,6 +462,7 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
         uTravel: { value: 0 },
         uPrevTravel: { value: 0 },
         uFieldDepth: { value: FIELD_DEPTH },
+        uScrollGravity: { value: 0 },
       },
     });
 
@@ -461,7 +472,6 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     const posScene = new THREE.Scene();
     posScene.add(new THREE.Mesh(quadGeo, posMat));
 
-    simInitializedRef.current = false;
     pingPongIdxRef.current = 0;
 
     return {
@@ -481,7 +491,6 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     };
   }, [gl, isMobile, simSize]);
 
-  // Clean up GPU FBOs, textures, geometries & materials on unmount or resize tier switch
   useEffect(() => {
     return () => {
       simResources.homeTex.dispose();
@@ -514,7 +523,6 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     [gl, reducedMotion, simResources]
   );
 
-  // Initialize GPGPU textures immediately so even reducedMotion static frame has clean zeroed textures
   useEffect(() => {
     const prevTarget = gl.getRenderTarget();
 
@@ -529,7 +537,6 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
 
     simResources.velMat.uniforms.uInit.value = 0;
     simResources.posMat.uniforms.uInit.value = 0;
-    simInitializedRef.current = true;
     pingPongIdxRef.current = 0;
 
     gl.setRenderTarget(prevTarget);
@@ -545,16 +552,28 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
 
     const dt = Math.min(delta, 0.05);
 
-    // 1. Scroll velocity & pitch modulation
+    // 1. Scroll tracking: downward scroll triggers gravitational pull on blossoms
     const currentScrollY = window.scrollY;
-    const scrollDelta = Math.abs(currentScrollY - lastScrollY.current);
+    const signedScrollDelta = currentScrollY - lastScrollY.current;
     lastScrollY.current = currentScrollY;
 
-    const targetBoost = Math.min(scrollDelta * 0.08, 3.5);
+    if (signedScrollDelta > 0) {
+      // Scrolling DOWN -> accumulate gravity pull
+      scrollDownGravityRef.current = Math.min(
+        1.55,
+        scrollDownGravityRef.current + signedScrollDelta * 0.0042
+      );
+    }
+    scrollDownGravityRef.current *= Math.exp(-4.0 * dt);
+    if (scrollDownGravityRef.current < 0.003) {
+      scrollDownGravityRef.current = 0;
+    }
+
+    const targetBoost = Math.min(Math.abs(signedScrollDelta) * 0.05, 2.4);
     scrollVelocityBoost.current = THREE.MathUtils.lerp(
       scrollVelocityBoost.current,
       targetBoost,
-      1 - Math.exp(-7.5 * dt)
+      1 - Math.exp(-7.0 * dt)
     );
 
     const docHeight =
@@ -572,7 +591,7 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     const baseFlightSpeed = 1.75;
     travelRef.current += (baseFlightSpeed + scrollVelocityBoost.current) * dt;
 
-    // 3. Camera mouse parallax + gentle scroll pitch modulation
+    // 3. Subtle camera mouse parallax + scroll pitch modulation
     const targetPx = pointerInside.current ? pointerNDC.current.x : 0;
     const targetPy = pointerInside.current ? pointerNDC.current.y : 0;
     const parallaxLerp = 1 - Math.exp(-3.6 * dt);
@@ -607,35 +626,44 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
       state.camera.matrixWorldInverse
     );
 
-    // 4. Lazy tail cursor update (lerp ~0.05 per 60Hz frame) + 3D vortex ray
+    // 4. Gentle cursor hover brush (only subtle reaction while moving cursor)
     if (!isMobile && pointerHasMoved.current) {
-      pointerIdleTimeRef.current += dt;
+      const hoverLerp = 1 - Math.pow(1 - 0.14, dt * 60);
+      smoothHoverPx.current.lerp(rawMousePx.current, hoverLerp);
 
-      const lazyAlpha = 1 - Math.pow(1 - 0.05, dt * 60);
-      lazyMousePx.current.lerp(rawMousePx.current, lazyAlpha);
+      pointerMoveActivityRef.current *= Math.exp(-4.5 * dt);
+      const targetHover =
+        pointerInside.current ? pointerMoveActivityRef.current : 0;
 
-      const tailLagDist = lazyMousePx.current.distanceTo(rawMousePx.current);
-      const isActivelySwirling =
-        pointerInside.current &&
-        (pointerIdleTimeRef.current < 1.15 || tailLagDist > 3.5);
-
-      const targetActive = isActivelySwirling ? 1.0 : 0.0;
-      vortexActiveRef.current = THREE.MathUtils.lerp(
-        vortexActiveRef.current,
-        targetActive,
-        1 - Math.exp((isActivelySwirling ? -12.0 : -3.2) * dt)
+      hoverActiveRef.current = THREE.MathUtils.lerp(
+        hoverActiveRef.current,
+        targetHover,
+        1 - Math.exp(-10.0 * dt)
       );
 
-      lazyNDCVec.set(
-        (lazyMousePx.current.x / window.innerWidth) * 2 - 1,
-        (lazyMousePx.current.y / window.innerHeight) * 2 - 1
+      tempNDCVec.set(
+        (smoothHoverPx.current.x / window.innerWidth) * 2 - 1,
+        (smoothHoverPx.current.y / window.innerHeight) * 2 - 1
       );
-      raycaster.setFromCamera(lazyNDCVec, state.camera);
+      hoverRaycaster.setFromCamera(tempNDCVec, state.camera);
     } else {
-      vortexActiveRef.current = 0;
+      hoverActiveRef.current = 0;
     }
 
-    // 5. GPGPU Ping-Pong Simulation Step (Pass 1: Velocity/State -> Pass 2: Position/Spin)
+    // 5. Consume pending click hop event (works on both desktop & mobile tap!)
+    const clickPx = pendingClickPx.current;
+    let clickTriggered = 0;
+    if (clickPx) {
+      clickTriggered = 1;
+      tempNDCVec.set(
+        (clickPx.x / window.innerWidth) * 2 - 1,
+        (clickPx.y / window.innerHeight) * 2 - 1
+      );
+      clickRaycaster.setFromCamera(tempNDCVec, state.camera);
+      pendingClickPx.current = null;
+    }
+
+    // 6. GPGPU Ping-Pong Simulation Step
     const readIdx = pingPongIdxRef.current;
     const writeIdx = 1 - readIdx;
 
@@ -648,11 +676,21 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     velUniforms.uPrevTravel.value = prevTravel;
     velUniforms.uViewProjMatrix.value.copy(viewProjMatrix);
     velUniforms.uViewportSize.value.set(window.innerWidth, window.innerHeight);
-    velUniforms.uVortexCenterPx.value.copy(lazyMousePx.current);
-    velUniforms.uVortexRadiusPx.value = VORTEX_RADIUS_PX;
-    velUniforms.uVortexActive.value = isMobile ? 0 : vortexActiveRef.current;
-    velUniforms.uVortexRayOrigin.value.copy(raycaster.ray.origin);
-    velUniforms.uVortexRayDir.value.copy(raycaster.ray.direction);
+
+    velUniforms.uHoverCenterPx.value.copy(smoothHoverPx.current);
+    velUniforms.uHoverRadiusPx.value = HOVER_RADIUS_PX;
+    velUniforms.uHoverActive.value = isMobile ? 0 : hoverActiveRef.current;
+    velUniforms.uHoverRayOrigin.value.copy(hoverRaycaster.ray.origin);
+    velUniforms.uHoverRayDir.value.copy(hoverRaycaster.ray.direction);
+
+    if (clickTriggered && clickPx) {
+      velUniforms.uClickCenterPx.value.copy(clickPx);
+      velUniforms.uClickRayOrigin.value.copy(clickRaycaster.ray.origin);
+      velUniforms.uClickRayDir.value.copy(clickRaycaster.ray.direction);
+    }
+    velUniforms.uClickRadiusPx.value = CLICK_HOP_RADIUS_PX;
+    velUniforms.uClickTrigger.value = clickTriggered;
+    velUniforms.uScrollGravity.value = scrollDownGravityRef.current;
 
     const prevRenderTarget = state.gl.getRenderTarget();
 
@@ -665,6 +703,7 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     posUniforms.uDt.value = dt;
     posUniforms.uTravel.value = travelRef.current;
     posUniforms.uPrevTravel.value = prevTravel;
+    posUniforms.uScrollGravity.value = scrollDownGravityRef.current;
 
     state.gl.setRenderTarget(simResources.rtOffset[writeIdx]);
     state.gl.render(simResources.posScene, simResources.orthoCam);
@@ -672,7 +711,7 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     state.gl.setRenderTarget(prevRenderTarget);
     pingPongIdxRef.current = writeIdx;
 
-    // 6. Bind updated GPGPU state textures to the 102,400-flower Points material
+    // 7. Bind updated GPGPU textures to flower Points shader
     renderMat.uniforms.uTexOffset.value =
       simResources.rtOffset[writeIdx].texture;
     renderMat.uniforms.uTexVel.value = simResources.rtVel[writeIdx].texture;
@@ -802,7 +841,6 @@ export function BackgroundScene() {
           />
         </Canvas>
 
-        {/* Subtle edge vignette preserving full lower-screen flower visibility */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_42%,rgba(2,2,5,0.38)_100%)]" />
       </div>
     </WebGLErrorBoundary>
