@@ -233,7 +233,7 @@ export const velFragmentShader = /* glsl */ `
           float u = clamp(distPx / uVortexRadiusPx, 0.0, 1.0);
           // Smooth C1 bell falloff to 0 at edge of vortex radius
           float radialFalloff = (1.0 - u) * (1.0 - u) * (1.0 + 2.0 * u);
-          float coreSmooth = smoothstep(0.0, 0.14, u);
+          float coreSmooth = smoothstep(0.0, 0.10, u);
           vortexInfluence = radialFalloff * uVortexActive;
 
           // 3D vortex axis point at the particle's exact distance from the camera
@@ -247,16 +247,19 @@ export const velFragmentShader = /* glsl */ `
             ? (relXZ / rXZ)
             : vec2(cos(seedData.b), sin(seedData.b));
 
-          // Counter-clockwise tangential spiral + gentle inward pull (never sharp repulsion)
+          // Fast whirlwind tangential spin (faster closer to the eye) + centripetal funnel pull
           vec2 tangDir = vec2(-radDir.y, radDir.x);
-          float swirlSpeed = mix(2.4, 3.8, seedData.r) * coreSmooth;
-          float inwardPull = (u > 0.20) ? (-0.65 * coreSmooth) : (0.25 * (0.20 - u));
+          float eyeBoost = mix(1.55, 0.85, u);
+          float swirlSpeed = mix(8.8, 13.8, seedData.r) * coreSmooth * eyeBoost;
+          float inwardPull = (u > 0.16)
+            ? (-mix(2.6, 4.3, u) * coreSmooth)
+            : (1.25 * (0.16 - u));
 
           vec2 horizVel = tangDir * swirlSpeed + radDir * inwardPull;
 
-          // Gentle upward lift (softly capped so blossoms hover in a graceful spiral plume)
-          float heightCap = clamp(1.0 - offset.y / 3.8, 0.0, 1.0);
-          float liftSpeed = mix(0.85, 1.75, seedData.g) * heightCap;
+          // Energetic upward funnel lift, capped smoothly at vortex top
+          float heightCap = clamp(1.0 - offset.y / 4.6, 0.0, 1.0);
+          float liftSpeed = mix(1.55, 3.10, seedData.g) * heightCap;
 
           vortexTargetVel = vec3(horizVel.x, liftSpeed, horizVel.y);
         }
@@ -265,8 +268,8 @@ export const velFragmentShader = /* glsl */ `
 
     // Autonomous ambient sky-drifting petals (~1.5% of population)
     if (isSkyPetal > 0.5) {
-      if (vortexInfluence > 0.06) {
-        vel = mix(vel, vortexTargetVel, 1.0 - exp(-4.8 * uDt * (0.35 + vortexInfluence)));
+      if (vortexInfluence > 0.05) {
+        vel = mix(vel, vortexTargetVel, 1.0 - exp(-11.0 * uDt * (0.35 + vortexInfluence)));
       } else {
         float swayFreq = mix(1.2, 2.5, seedData.b * 0.15);
         float swayAmp  = mix(0.32, 0.78, seedData.r);
@@ -284,9 +287,9 @@ export const velFragmentShader = /* glsl */ `
     }
 
     // Meadow blossom 4-stage state machine:
-    // 1) Caught in lazy cursor vortex -> gentle spiral swirl + lift
-    if (vortexInfluence > 0.05) {
-      float blend = 1.0 - exp(-5.0 * uDt * (0.3 + vortexInfluence));
+    // 1) Caught in lazy cursor vortex -> fast spiral whirlwind + funnel lift
+    if (vortexInfluence > 0.045) {
+      float blend = 1.0 - exp(-11.5 * uDt * (0.35 + vortexInfluence));
       vel = mix(vel, vortexTargetVel, blend);
       timer = 1.0; // Start/refresh post-cursor inertia countdown
     }
@@ -296,12 +299,12 @@ export const velFragmentShader = /* glsl */ `
       float inertiaDuration = mix(2.1, 3.9, seedData.r);
 
       // Damping ~0.97 per 60fps frame
-      float frameDamping = pow(0.971, uDt * 60.0);
+      float frameDamping = pow(0.970, uDt * 60.0);
       vel *= frameDamping;
 
-      // Residual orbital curl so blossoms keep circling gracefully by inertia
+      // Residual hurricane curl smoothly unwinding from fast spin
       float inertiaProgress = clamp((timer - 1.0) / inertiaDuration, 0.0, 1.0);
-      float curlAngularVel = mix(1.9, 0.45, inertiaProgress);
+      float curlAngularVel = mix(4.4, 0.65, inertiaProgress);
       float ca = cos(curlAngularVel * uDt);
       float sa = sin(curlAngularVel * uDt);
       vel.xz = mat2(ca, -sa, sa, ca) * vel.xz;
@@ -428,9 +431,9 @@ export const posFragmentShader = /* glsl */ `
       offset.y = max(0.0, offset.y);
       offset.xz = clamp(offset.xz, vec2(-22.0), vec2(22.0));
 
-      // Rotate around own axis while swirling and fluttering downward
+      // Rotate briskly around own axis while whipping inside the whirlwind, slower when fluttering down
       float speedMag = length(vel);
-      float axialSpinRate = mix(0.95, 2.6, seedData.g) * (0.65 + min(speedMag * 0.35, 1.4));
+      float axialSpinRate = mix(1.4, 3.8, seedData.g) * (0.65 + min(speedMag * 0.48, 2.8));
       spin = mod(spin + spinDir * axialSpinRate * uDt, 62.831853);
     }
     // Landed on the ground -> smoothly glide back to resting spot in the field
@@ -620,37 +623,39 @@ export const fieldFragmentShader = /* glsl */ `
     // Flower center dot + soft calyx depth shading
     float coreMask = 1.0 - smoothstep(0.11, 0.23, r);
     float calyxRing = smoothstep(0.17, 0.38, r);
-    float petalShade = 0.80 + 0.26 * calyxRing * (1.0 - 0.15 * smoothstep(0.68, 0.94, r));
+    float petalShade = 0.74 + 0.26 * calyxRing * (1.0 - 0.18 * smoothstep(0.66, 0.94, r));
 
-    // White blossoms with delicate nocturnal pastel tints + #D4FF3A accents
-    vec3 pureWhite   = vec3(0.972, 0.976, 0.998);
-    vec3 pastelLav   = vec3(0.885, 0.825, 1.000);
-    vec3 pastelBlue  = vec3(0.825, 0.935, 1.000);
-    vec3 pastelBlush = vec3(1.000, 0.865, 0.935);
-    vec3 accentLime  = vec3(0.831, 1.000, 0.227); // #D4FF3A
+    // Darker, moody nocturnal valley blossom palette + muted #D4FF3A accents
+    vec3 duskySilver = vec3(0.35, 0.36, 0.44);
+    vec3 darkViolet  = vec3(0.32, 0.24, 0.48);
+    vec3 midnightBlu = vec3(0.23, 0.32, 0.46);
+    vec3 duskyPlum   = vec3(0.40, 0.25, 0.37);
+    vec3 restingLime = vec3(0.50, 0.63, 0.15);
+    vec3 activeLime  = vec3(0.831, 1.000, 0.227); // #D4FF3A
 
     float hueWave = 0.5 + 0.5 * sin(vSeed * 6.28318 + vElevation * 2.8);
-    vec3 pastelTint = mix(pastelLav, pastelBlue, hueWave);
-    pastelTint = mix(pastelTint, pastelBlush, smoothstep(0.62, 1.0, fract(vSeed * 4.1 + vElevation * 0.35)));
+    vec3 darkTint = mix(darkViolet, midnightBlu, hueWave);
+    darkTint = mix(darkTint, duskyPlum, smoothstep(0.62, 1.0, fract(vSeed * 4.1 + vElevation * 0.35)));
 
-    float valleyLight = mix(0.76, 1.04, vElevation);
-    vec3 petalColor = mix(pureWhite, pastelTint, 0.28 + 0.16 * (1.0 - vElevation));
+    float valleyLight = mix(0.50, 0.88, vElevation);
+    vec3 petalColor = mix(duskySilver, darkTint, 0.52 + 0.18 * (1.0 - vElevation));
 
-    float isAccent = step(0.87, vSeed);
-    petalColor = mix(petalColor, accentLime, isAccent);
+    float isAccent = step(0.88, vSeed);
+    vec3 limeTone = mix(restingLime, activeLime, clamp(vAirborne * 0.65, 0.0, 0.65));
+    petalColor = mix(petalColor, limeTone, isAccent);
 
-    // Gentle moonlit gleam on swirling/falling blossoms
-    petalColor = mix(petalColor, mix(pureWhite, accentLime, 0.32), clamp(vAirborne * 0.28, 0.0, 0.28));
+    // Subtle moonlit highlight when blossoms are lifted into the spinning whirlwind
+    petalColor = mix(petalColor, mix(vec3(0.56, 0.54, 0.68), activeLime, 0.28), clamp(vAirborne * 0.32, 0.0, 0.32));
     petalColor *= petalShade * valleyLight;
 
-    vec3 whiteFlowerCore = mix(vec3(1.0, 0.98, 0.88), accentLime, 0.45);
-    vec3 limeFlowerCore  = vec3(0.98, 1.0, 0.88);
-    vec3 coreColor = mix(whiteFlowerCore, limeFlowerCore, isAccent);
+    vec3 darkFlowerCore = mix(vec3(0.52, 0.50, 0.56), restingLime, 0.38);
+    vec3 limeFlowerCore = vec3(0.76, 0.88, 0.42);
+    vec3 coreColor = mix(darkFlowerCore, limeFlowerCore, isAccent);
 
-    vec3 finalColor = mix(petalColor, coreColor, coreMask * 0.92);
+    vec3 finalColor = mix(petalColor, coreColor, coreMask * 0.88);
 
-    float baseOpacity = mix(0.74, 0.96, isAccent);
-    float alpha = flowerMask * vAlpha * min(1.0, baseOpacity + vAirborne * 0.14);
+    float baseOpacity = mix(0.58, 0.80, isAccent);
+    float alpha = flowerMask * vAlpha * min(0.92, baseOpacity + vAirborne * 0.16);
 
     gl_FragColor = vec4(finalColor, alpha);
   }

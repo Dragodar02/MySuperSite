@@ -29,7 +29,7 @@ const FIELD_HALF_WIDTH = 52;
 const FIELD_Z_FAR = -66;
 const FIELD_Z_NEAR = 12.4;
 const FIELD_DEPTH = FIELD_Z_NEAR - FIELD_Z_FAR; // 78.4
-const VORTEX_RADIUS_PX = 205; // ~150-250px screen-space vortex radius
+const VORTEX_RADIUS_PX = 215; // ~150-250px screen-space vortex radius
 
 interface SceneProps {
   isMobile: boolean;
@@ -617,13 +617,13 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
       const tailLagDist = lazyMousePx.current.distanceTo(rawMousePx.current);
       const isActivelySwirling =
         pointerInside.current &&
-        (pointerIdleTimeRef.current < 0.75 || tailLagDist > 3.5);
+        (pointerIdleTimeRef.current < 1.15 || tailLagDist > 3.5);
 
       const targetActive = isActivelySwirling ? 1.0 : 0.0;
       vortexActiveRef.current = THREE.MathUtils.lerp(
         vortexActiveRef.current,
         targetActive,
-        1 - Math.exp((isActivelySwirling ? -8.5 : -3.2) * dt)
+        1 - Math.exp((isActivelySwirling ? -12.0 : -3.2) * dt)
       );
 
       lazyNDCVec.set(
