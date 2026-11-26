@@ -1,59 +1,77 @@
-# Zakharii Stroich — Character & Technical Artist
+# Zakharii Stroich — 3D Character & Sculpt Artist Portfolio
 
-Portfolio of Zakharii Stroich, a character and technical artist from Lublin, Poland, and a 3rd-year Informatics student at KUL. The site presents game-ready characters, hard-surface props and an environment, with topology, UVs and PBR texturing — from sculpt to Unreal Engine 5. Modelling is done in Blender, ZBrush and Substance Painter.
+Мінімалістичне студійне портфоліо на **React + TypeScript + Vite + Tailwind CSS + Framer Motion**, налаштоване під деплой на **Netlify** з доменом [`3dartist.dev`](https://3dartist.dev/). Репозиторій: `Dragodar02/MySuperSite`.
 
-**Live site:** [dragodar02.github.io/MySuperSite](https://dragodar02.github.io/MySuperSite/)
+---
 
-## Preview
-
-| [Cyber Samurai](character.html) | [Hard Surface Props](props.html) | [Sci-Fi Outpost](environment.html) |
-| --- | --- | --- |
-| ![Cyber Samurai](assets/img/bust-beauty.webp) | ![Hard Surface Props](assets/img/prop-beauty.webp) | ![Sci-Fi Outpost](assets/img/env-beauty.webp) |
-
-## Pages
-
-| Page | What it shows |
-| --- | --- |
-| `index.html` | Home: hero, selected work, technical breakdown, pipeline, about, contact |
-| `character.html` | Case study — Cyber Samurai |
-| `props.html` | Case study — Hard Surface Props |
-| `environment.html` | Case study — Sci-Fi Outpost |
-| `404.html` | Missing-page screen, same layout as the rest of the site |
-
-The home page filters work by character, hard surface and environment. Each case study has a before/after comparison, shading modes, and the stats defined for that project. Cyber Samurai and Hard Surface Props also show a UV layout and a PBR map breakdown. The contact form opens the visitor's email app; it does not post to a server.
-
-## Tech stack
-
-Static HTML, CSS and JavaScript. There is no framework and no required build for hosting.
-
-Optional libraries, loaded from a CDN and skipped cleanly if they fail: [GSAP](https://gsap.com/) and ScrollTrigger, [Lenis](https://github.com/darkroomengineering/lenis) for smooth scroll, and [Three.js](https://threejs.org/) 0.160 for the hero. The hero reads `data-video`, `data-model` and `data-poster` on the home section. With both media attributes empty it draws a point field behind the poster, and it falls back to the still image when WebGL is unavailable, Save-Data is on, or the visitor prefers reduced motion.
-
-Tools listed on the pipeline: ZBrush, Blender, Maya, Substance 3D Painter, Marmoset Toolbag, RizomUV, Marvelous Designer, Unreal Engine 5.
-
-## Run locally
-
-From the repository root:
+## 1. Локальний запуск
 
 ```bash
-python3 -m http.server 8080
+npm install
+npm run dev
 ```
 
-Open [http://localhost:8080/](http://localhost:8080/). Links and assets are relative, so the same files also work under the GitHub Pages subpath `/MySuperSite/`.
-
-## Build
-
-Page copy, projects, pipeline stages and tool list live in `tools/build.py`. Regenerate the HTML from the repo root:
+Збірка та локальна перевірка production-білду:
 
 ```bash
-python3 tools/build.py
+npm run build
+npm run preview
 ```
 
-That writes `index.html`, `character.html`, `props.html`, `environment.html` and `404.html`. The HTML is plain and can be edited by hand; the next run overwrites those five files. Images stay in `assets/img` and are referenced by filename (`bust-beauty.webp`, `prop-beauty.webp`, `env-beauty.webp`, the wire and topology passes, `uv-layout.webp`, and the `pbr-*` maps). The portrait is `assets/img/avatar.jpg`. The renders currently in the repo are stand-ins; replace the files and keep the names. Polycounts and UV stats are the values in `PROJECTS` inside `tools/build.py`.
+---
 
-## GitHub Pages
+## 2. Активація контактної форми (Web3Forms за 2 хвилини)
 
-The site is meant to be served from the `main` branch, folder `/ (root)`, at [https://dragodar02.github.io/MySuperSite/](https://dragodar02.github.io/MySuperSite/). `.nojekyll` is in the root so Pages does not run Jekyll. `404.html` uses `/MySuperSite/…` paths because Pages shows that file at the missing URL; every other page uses relative paths.
+Форма налаштована на відправку листів напряму на **`stroichzahar161218@gmail.com`** через Web3Forms (без бекенду):
 
-## Credits
+1. Перейди на https://web3forms.com/
+2. Введи `stroichzahar161218@gmail.com` і натисни **Create Access Key**.
+3. Підтвердь лист на пошті та скопіюй отриманий **Access Key**.
+4. **Для локальної розробки:** встав ключ у файл `.env`:
+   ```env
+   VITE_WEB3FORMS_ACCESS_KEY=твій_ключ_тут
+   ```
+5. **Для Netlify:** у налаштуваннях сайту відкрий **Site configuration → Environment variables** і додай:
+   - **Key:** `VITE_WEB3FORMS_ACCESS_KEY`
+   - **Value:** встав свій ключ.
+   *(Альтернативно ключ можна вставити напряму в поле `web3formsAccessKey` у `src/data/portfolio.ts` — ключі Web3Forms публічні за дизайном).*
 
-The Blender, ZBrush and Substance Painter icons in `assets/icons` (`icons8-blender-3d-48.png`, `icons8-zbrush-100.png`, `icons8-substance-painter-64.png`) are from [Icons8](https://icons8.com).
+---
+
+## 3. Як додавати свої 3D-рендери та проєкти
+
+Увесь контент сайту зібраний в одному файлі: **`src/data/portfolio.ts`**.
+
+1. Поклади рендери або відео (`.webp`, `.png`, `.jpg`, `.mp4`, `.webm`) у папку **`public/renders/`** (наприклад, `public/renders/demon-bust-beauty.webp`).
+2. У `src/data/portfolio.ts` заміни `src: null` на відносний шлях:
+   ```ts
+   src: 'renders/demon-bust-beauty.webp',
+   ```
+   Утиліта `resolveAssetPath()` автоматично підставляє `import.meta.env.BASE_URL` (`/` на `3dartist.dev`), тому всі медіа коректно працюють і локально, і в продакшені.
+3. Поки `src: null`, сайт автоматично рендерить студійний слот `<MediaSlot />`. Як тільки шлях вказано — відображається рендер/відео з повноекранним зумом (Lightbox).
+
+---
+
+## 4. Увімкнення соцмереж (ArtStation, LinkedIn, Instagram)
+
+У файлі `src/data/portfolio.ts` у масиві `contactData.socials` встав свій URL і постав `enabled: true`:
+
+```ts
+{
+  id: 'artstation',
+  label: 'ARTSTATION',
+  url: 'https://www.artstation.com/твій_нік',
+  enabled: true,
+}
+```
+
+---
+
+## 5. Деплой на Netlify (`3dartist.dev`)
+
+У проєкті вже налаштовано `base: '/'` у `vite.config.ts` та `netlify.toml` (`npm run build`, publish `dist`, Node 20). Сайт лежить у корені власного домену, не в `/MySuperSite/`.
+
+1. Запуш код у гілку `main` репозиторію `https://github.com/Dragodar02/MySuperSite`.
+2. Підключи цей репозиторій до існуючого Netlify-сайту, на якому вже налаштований домен `3dartist.dev`.
+3. Додай змінну середовища `VITE_WEB3FORMS_ACCESS_KEY` (див. розділ 2).
+4. Після деплою сайт буде доступний за адресою: `https://3dartist.dev/`

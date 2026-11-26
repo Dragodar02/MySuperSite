@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    background-color: #05040A;
+    color: #F5F5F5;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    background-color: #05040A;
+    color: #F5F5F5;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background-color: #D2FF3A;
+    color: #0A0A0A;
+  }
+}
+
+/* Studio 1px technical viewport grid for MediaSlot (translucent over 3D field) */
+.studio-grid {
+  background-color: rgba(13, 13, 18, 0.72);
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: center center;
+}
+
+/* Text legibility halo over live 3D particle crests */
+.editorial-text-guard {
+  text-shadow: 0 2px 24px rgba(3, 3, 6, 0.85), 0 1px 4px rgba(3, 3, 6, 0.75);
+}
+
+/* Minimal custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #06050B;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #22222A;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #353542;
+}
