@@ -61,20 +61,24 @@ export function Hero() {
               >
                 <span>CONTACT</span>
               </a>
-
-              {activeSocials.map((social) => (
-                <a
-                  key={social.id}
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] bg-[#0D0C13]/65 px-4 py-3 font-mono text-xs uppercase tracking-[0.13em] text-[#B4B4BC] backdrop-blur-md transition-colors duration-150 hover:border-white/25 hover:text-[#F5F5F5]"
-                >
-                  <span>{social.label}</span>
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </a>
-              ))}
             </div>
+
+            {activeSocials.length > 0 && (
+              <div className="mt-4 flex flex-wrap items-center gap-2.5 [text-shadow:none]">
+                {activeSocials.map((social) => (
+                  <a
+                    key={social.id}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] bg-[#0D0C13]/65 px-3.5 py-2 font-mono text-[11px] uppercase tracking-[0.13em] text-[#B4B4BC] backdrop-blur-md transition-colors duration-150 hover:border-[#D2FF3A] hover:text-[#D2FF3A]"
+                  >
+                    <span>{social.label}</span>
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </a>
+                ))}
+              </div>
+            )}
           </motion.div>
 
           {/* Right featured render viewport */}

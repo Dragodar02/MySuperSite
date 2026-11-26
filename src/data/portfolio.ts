@@ -405,28 +405,28 @@ export const contactData = {
   ],
   socials: [
     {
-      id: 'github',
-      label: 'GITHUB',
-      url: 'https://github.com/Dragodar02',
-      enabled: true,
-    },
-    {
       id: 'artstation',
       label: 'ARTSTATION',
-      url: '', // Paste your ArtStation URL and set enabled: true
-      enabled: false,
+      url: 'https://www.artstation.com/zakhariistroich',
+      enabled: true,
     },
     {
       id: 'linkedin',
       label: 'LINKEDIN',
-      url: '', // Paste your LinkedIn URL and set enabled: true
-      enabled: false,
+      url: 'https://www.linkedin.com/in/zakharii-stroich-74822633a/',
+      enabled: true,
     },
     {
       id: 'instagram',
       label: 'INSTAGRAM',
-      url: '', // Paste your Instagram URL and set enabled: true
-      enabled: false,
+      url: 'https://www.instagram.com/stroichz/',
+      enabled: true,
+    },
+    {
+      id: 'github',
+      label: 'GITHUB',
+      url: 'https://github.com/Dragodar02',
+      enabled: true,
     },
   ] as SocialLink[],
 };
