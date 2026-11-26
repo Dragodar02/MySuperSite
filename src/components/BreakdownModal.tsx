@@ -76,7 +76,7 @@ export function BreakdownModal({ project, onClose }: BreakdownModalProps) {
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.08] px-5 py-4 sm:px-7">
               <div className="flex items-center gap-3">
                 <span className="h-2 w-2 bg-[#D2FF3A]" aria-hidden="true" />
-                <span className="font-mono text-xs uppercase tracking-[0.14em] text-[#8E8E93]">
+                <span className="font-mono text-xs uppercase tracking-[0.14em] text-[#B5B5C2]">
                   {project.number} / BREAKDOWN VIEWER
                 </span>
               </div>
@@ -84,7 +84,7 @@ export function BreakdownModal({ project, onClose }: BreakdownModalProps) {
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-[#121214] px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-[#F5F5F5] transition-colors hover:border-[#D2FF3A] hover:text-[#D2FF3A]"
+                className="inline-flex items-center gap-2 rounded-full border border-white/[0.14] bg-[#14141D] px-3.5 py-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-[#F5F5F7] transition-colors hover:border-[#D2FF3A] hover:text-[#D2FF3A]"
               >
                 <span>ESC</span>
                 <X className="h-3.5 w-3.5" />
@@ -92,8 +92,8 @@ export function BreakdownModal({ project, onClose }: BreakdownModalProps) {
             </div>
 
             {/* Pass switcher bar */}
-            <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.08] bg-[#121214]/60 px-5 py-3 sm:px-7">
-              <span className="mr-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[#8E8E93]">
+            <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.08] bg-[#111118] px-5 py-3 sm:px-7">
+              <span className="mr-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#A6A6B4]">
                 PASS:
               </span>
               {project.passes.map((pass) => {
@@ -103,10 +103,10 @@ export function BreakdownModal({ project, onClose }: BreakdownModalProps) {
                     key={pass.key}
                     type="button"
                     onClick={() => setActivePassKey(pass.key)}
-                    className={`rounded-full px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.12em] transition-colors ${
+                    className={`rounded-full px-3.5 py-1.5 font-mono text-xs uppercase tracking-[0.12em] transition-colors ${
                       isActive
-                        ? 'bg-[#D2FF3A] font-medium text-[#0A0A0A]'
-                        : 'border border-white/[0.08] bg-[#121214] text-[#8E8E93] hover:border-white/20 hover:text-[#F5F5F5]'
+                        ? 'bg-[#D2FF3A] font-semibold text-[#0A0A0A]'
+                        : 'border border-white/[0.12] bg-[#14141D] text-[#B5B5C2] hover:border-white/25 hover:text-[#F5F5F7]'
                     }`}
                   >
                     {pass.label}
@@ -127,14 +127,14 @@ export function BreakdownModal({ project, onClose }: BreakdownModalProps) {
                 />
               </div>
 
-              <div className="flex flex-col justify-between p-5 sm:p-7 lg:col-span-4">
+              <div className="flex flex-col justify-between p-6 sm:p-7 lg:col-span-4">
                 <div>
-                  <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8E8E93]">
+                  <span className="font-mono text-xs uppercase tracking-[0.14em] text-[#A6A6B4]">
                     PROJECT {project.number}
                   </span>
                   <h3
                     id="breakdown-modal-title"
-                    className="mt-1.5 font-display text-2xl font-bold tracking-[-0.025em] text-[#F5F5F5] sm:text-3xl"
+                    className="mt-1.5 font-display text-2xl font-bold tracking-[-0.025em] text-[#F5F5F7] sm:text-3xl"
                   >
                     {project.title}
                   </h3>
@@ -147,30 +147,30 @@ export function BreakdownModal({ project, onClose }: BreakdownModalProps) {
                           key={row.label}
                           className="flex items-baseline justify-between gap-4 py-3"
                         >
-                          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#8E8E93]">
+                          <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#A6A6B4]">
                             {row.label}
                           </span>
-                          <span className="text-right font-mono text-xs text-[#F5F5F5]">
+                          <span className="text-right font-mono text-xs font-medium text-[#F5F5F7]">
                             {row.value}
                           </span>
                         </div>
                       ))
                     ) : (
-                      <div className="py-3.5 font-mono text-xs text-[#8E8E93]">
+                      <div className="py-3.5 font-mono text-xs text-[#B5B5C2]">
                         Technical specifications not populated yet.
                       </div>
                     )}
 
                     {project.specs.software.length > 0 && (
                       <div className="py-3.5">
-                        <span className="block font-mono text-[10px] uppercase tracking-[0.14em] text-[#8E8E93]">
+                        <span className="block font-mono text-[11px] uppercase tracking-[0.14em] text-[#A6A6B4]">
                           SOFTWARE USED
                         </span>
                         <div className="mt-2.5 flex flex-wrap gap-1.5">
                           {project.specs.software.map((tool) => (
                             <span
                               key={tool}
-                              className="border border-white/[0.1] bg-[#121214] px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.1em] text-[#F5F5F5]"
+                              className="border border-white/[0.12] bg-[#14141D] px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-[#F5F5F7]"
                             >
                               {tool}
                             </span>
@@ -182,17 +182,17 @@ export function BreakdownModal({ project, onClose }: BreakdownModalProps) {
 
                   {project.specs.notes && (
                     <div className="mt-5">
-                      <span className="block font-mono text-[10px] uppercase tracking-[0.14em] text-[#8E8E93]">
+                      <span className="block font-mono text-[11px] uppercase tracking-[0.14em] text-[#A6A6B4]">
                         NOTES
                       </span>
-                      <p className="mt-2 text-sm leading-relaxed text-[#8E8E93]">
+                      <p className="mt-2 text-sm leading-[1.65] text-[#C8C8D2]">
                         {project.specs.notes}
                       </p>
                     </div>
                   )}
                 </div>
 
-                <div className="mt-8 pt-4 font-mono text-[10px] uppercase tracking-[0.13em] text-[#8E8E93]/70">
+                <div className="mt-8 pt-4 font-mono text-[11px] uppercase tracking-[0.13em] text-[#9A9AA8]">
                   ACTIVE SLOT: {activePass.media.slotId}
                 </div>
               </div>

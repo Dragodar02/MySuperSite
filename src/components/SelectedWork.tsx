@@ -25,7 +25,7 @@ export function SelectedWork() {
   return (
     <section
       id="work"
-      className="border-b border-white/[0.08] py-16 sm:py-24"
+      className="border-b border-white/[0.08] py-20 sm:py-28"
     >
       <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
         <SectionHeader
@@ -34,9 +34,9 @@ export function SelectedWork() {
           rightMeta="CLICK ANY WORK FOR BREAKDOWN PASSES"
         />
 
-        {/* Heading + Category Filter Tabs */}
-        <div className="mt-8 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
-          <h2 className="editorial-text-guard font-display text-3xl font-bold tracking-[-0.03em] text-[#F5F5F5] sm:text-4xl">
+        {/* Heading + Category Filter Bar on calm studio surface */}
+        <div className="studio-surface mt-8 flex flex-col justify-between gap-6 p-6 sm:flex-row sm:items-center sm:px-8 sm:py-6">
+          <h2 className="font-display text-3xl font-bold tracking-[-0.03em] text-[#F5F5F7] sm:text-4xl">
             Selected Works
           </h2>
 
@@ -54,10 +54,10 @@ export function SelectedWork() {
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => setActiveCategory(category)}
-                  className={`rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.13em] transition-colors duration-150 ${
+                  className={`rounded-full px-4 py-2 font-mono text-xs uppercase tracking-[0.12em] transition-colors duration-150 ${
                     isActive
-                      ? 'bg-[#D2FF3A] font-medium text-[#0A0A0A]'
-                      : 'border border-white/[0.1] bg-[#0D0C13]/75 text-[#9E9EA8] backdrop-blur-md hover:border-white/25 hover:text-[#F5F5F5]'
+                      ? 'bg-[#D2FF3A] font-semibold text-[#0A0A0A]'
+                      : 'border border-white/[0.12] bg-[#14141D] text-[#B5B5C2] hover:border-white/30 hover:text-[#F5F5F7]'
                   }`}
                 >
                   {category}
@@ -69,7 +69,7 @@ export function SelectedWork() {
 
         {/* 2-Column Portfolio Grid */}
         {filteredProjects.length > 0 ? (
-          <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2">
+          <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
             {filteredProjects.map((project, index) => (
               <motion.article
                 key={project.id}
@@ -77,31 +77,31 @@ export function SelectedWork() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.15 }}
                 transition={{ duration: 0.3, delay: index * 0.04 }}
-                className="group flex flex-col border border-white/[0.1] bg-[#0C0C12]/72 backdrop-blur-md transition-colors duration-200 hover:border-white/25 hover:bg-[#101018]/80"
+                className="studio-surface group flex flex-col transition-colors duration-200 hover:border-white/25"
               >
                 <button
                   type="button"
                   onClick={() => setSelectedProject(project)}
                   className="flex h-full w-full flex-col text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-[#D2FF3A]"
                 >
-                  <div className="w-full p-3 pb-0 sm:p-4 sm:pb-0">
+                  <div className="w-full p-3.5 pb-0 sm:p-5 sm:pb-0">
                     <MediaSlot
                       media={project.thumbnail}
                       aspectClass="aspect-[16/10]"
                     />
                   </div>
 
-                  <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
+                  <div className="flex flex-1 flex-col justify-between p-5 sm:p-6">
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-2.5">
-                          <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8E8E93]">
+                          <span className="font-mono text-xs uppercase tracking-[0.14em] text-[#A6A6B4]">
                             {project.number}
                           </span>
                           {project.category && (
                             <>
-                              <span className="text-white/20">·</span>
-                              <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#D2FF3A]">
+                              <span className="text-white/25">·</span>
+                              <span className="font-mono text-xs uppercase tracking-[0.14em] text-[#D2FF3A]">
                                 {project.category}
                               </span>
                             </>
@@ -109,26 +109,26 @@ export function SelectedWork() {
                         </div>
 
                         <h3
-                          className={`mt-1.5 font-display text-xl font-semibold tracking-[-0.02em] sm:text-2xl ${
+                          className={`mt-2 font-display text-xl font-semibold tracking-[-0.02em] sm:text-2xl ${
                             project.isEmptySlot
-                              ? 'text-[#9E9EA8]'
-                              : 'text-[#F5F5F5]'
+                              ? 'text-[#B5B5C2]'
+                              : 'text-[#F5F5F7]'
                           }`}
                         >
                           {project.title}
                         </h3>
                       </div>
 
-                      <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/[0.1] bg-[#14141C]/85 text-[#8E8E93] transition-colors duration-200 group-hover:border-[#D2FF3A] group-hover:text-[#D2FF3A]">
+                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/[0.12] bg-[#15151E] text-[#A6A6B4] transition-colors duration-200 group-hover:border-[#D2FF3A] group-hover:text-[#D2FF3A]">
                         <ArrowUpRight className="h-4 w-4" />
                       </span>
                     </div>
 
-                    <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.08] pt-3.5">
-                      <span className="font-mono text-[11px] uppercase tracking-[0.13em] text-[#9E9EA8]">
+                    <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.08] pt-4">
+                      <span className="font-mono text-[11px] uppercase tracking-[0.13em] text-[#A6A6B4]">
                         {project.cardMeta}
                       </span>
-                      <span className="font-mono text-[10px] uppercase tracking-[0.13em] text-[#F5F5F5]/80 group-hover:text-[#D2FF3A]">
+                      <span className="font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-[#C8C8D2] group-hover:text-[#D2FF3A]">
                         VIEW BREAKDOWN [{project.passes.length} PASSES]
                       </span>
                     </div>
@@ -138,14 +138,14 @@ export function SelectedWork() {
             ))}
           </div>
         ) : (
-          <div className="mt-10 flex flex-col items-center justify-center border border-white/[0.1] bg-[#0C0C12]/72 px-6 py-16 text-center backdrop-blur-md">
-            <p className="font-mono text-xs uppercase tracking-[0.15em] text-[#9E9EA8]">
+          <div className="studio-surface mt-8 flex flex-col items-center justify-center px-6 py-16 text-center">
+            <p className="font-mono text-xs uppercase tracking-[0.15em] text-[#B5B5C2]">
               NO PUBLISHED WORKS IN &ldquo;{activeCategory.toUpperCase()}&rdquo; YET
             </p>
             <button
               type="button"
               onClick={() => setActiveCategory('All')}
-              className="mt-5 rounded-full border border-white/[0.14] bg-[#14141C]/85 px-5 py-2 font-mono text-[11px] uppercase tracking-[0.13em] text-[#F5F5F5] transition-colors hover:border-[#D2FF3A] hover:text-[#D2FF3A]"
+              className="mt-5 rounded-full border border-white/[0.16] bg-[#14141D] px-5 py-2 font-mono text-xs uppercase tracking-[0.13em] text-[#F5F5F7] transition-colors hover:border-[#D2FF3A] hover:text-[#D2FF3A]"
             >
               SHOW ALL SLOTS
             </button>

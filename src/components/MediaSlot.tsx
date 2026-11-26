@@ -28,7 +28,7 @@ export function MediaSlot({
   return (
     <>
       <div
-        className={`group/slot relative w-full overflow-hidden border border-white/[0.1] bg-[#0D0D13]/75 backdrop-blur-md ${aspectClass} ${className}`}
+        className={`group/slot relative w-full overflow-hidden border border-white/[0.11] bg-[#0B0B11]/92 backdrop-blur-xl ${aspectClass} ${className}`}
       >
         {showMedia && resolvedSrc ? (
           <>
@@ -58,9 +58,9 @@ export function MediaSlot({
                 type="button"
                 onClick={() => setLightboxOpen(true)}
                 aria-label={`Inspect ${media.label} fullscreen`}
-                className="absolute inset-0 flex items-end justify-end bg-gradient-to-t from-black/50 via-transparent to-transparent p-3.5 opacity-0 transition-opacity duration-200 hover:opacity-100 focus-visible:opacity-100"
+                className="absolute inset-0 flex items-end justify-end bg-gradient-to-t from-black/55 via-transparent to-transparent p-3.5 opacity-0 transition-opacity duration-200 hover:opacity-100 focus-visible:opacity-100"
               >
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.18] bg-[#0A0A0F]/85 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[#F5F5F5] backdrop-blur-sm">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.18] bg-[#0A0A0F]/92 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.13em] text-[#F5F5F7] backdrop-blur-sm">
                   <Maximize2 className="h-3 w-3 text-[#D2FF3A]" />
                   INSPECT FULLSCREEN
                 </span>
@@ -89,11 +89,11 @@ export function MediaSlot({
 
             {/* Top technical bar */}
             <div className="relative z-10 flex items-center justify-between gap-2 px-1.5 pt-0.5">
-              <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[#8E8E93]">
-                <span className="h-1.5 w-1.5 bg-white/25 transition-colors duration-200 group-hover/slot:bg-[#D2FF3A]" />
+              <span className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.13em] text-[#A6A6B4]">
+                <span className="h-1.5 w-1.5 bg-white/30 transition-colors duration-200 group-hover/slot:bg-[#D2FF3A]" />
                 VIEWPORT SLOT
               </span>
-              <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#8E8E93]">
+              <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-[#A6A6B4]">
                 {media.spec}
               </span>
             </div>
@@ -102,20 +102,20 @@ export function MediaSlot({
             <div className="relative z-10 my-auto flex flex-col items-center justify-center px-3 py-4 text-center">
               <div
                 aria-hidden="true"
-                className="mb-3 flex h-6 w-6 items-center justify-center rounded-full border border-white/[0.1] bg-[#0A0A0F]/80 font-mono text-xs text-[#8E8E93]/80"
+                className="mb-3 flex h-6 w-6 items-center justify-center rounded-full border border-white/[0.12] bg-[#0B0B11] font-mono text-xs text-[#A6A6B4]"
               >
                 +
               </div>
-              <span className="rounded border border-white/[0.12] bg-[#0A0A0F]/85 px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-[#F5F5F5]">
+              <span className="rounded border border-white/[0.14] bg-[#0B0B11] px-2.5 py-1 font-mono text-xs font-medium uppercase tracking-[0.14em] text-[#F5F5F7]">
                 {media.slotId}
               </span>
-              <p className="mt-2.5 max-w-sm font-mono text-[11px] leading-relaxed tracking-[0.06em] text-[#9E9EA8]">
+              <p className="mt-2.5 max-w-sm font-mono text-xs leading-[1.6] tracking-[0.04em] text-[#B5B5C2]">
                 PLANNED MEDIA: {media.label}
               </p>
             </div>
 
             {/* Bottom path hint */}
-            <div className="relative z-10 flex items-center justify-between gap-2 px-1.5 pb-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[#8E8E93]/75">
+            <div className="relative z-10 flex items-center justify-between gap-2 px-1.5 pb-0.5 font-mono text-[11px] uppercase tracking-[0.12em] text-[#9A9AA8]">
               <span>PUBLIC/RENDERS/</span>
               <span>SRC: NULL</span>
             </div>

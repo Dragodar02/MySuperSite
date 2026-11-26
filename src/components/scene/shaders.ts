@@ -600,6 +600,7 @@ export const fieldVertexShader = /* glsl */ `
   uniform float uHalfWidth;
   uniform float uPixelRatio;
   uniform float uReducedMotion;
+  uniform float uIsMobile;
 
   varying float vAlpha;
   varying float vSeed;
@@ -610,6 +611,7 @@ export const fieldVertexShader = /* glsl */ `
   varying float vAirborne;
   varying float vDepth;
   varying float vPointSize;
+  varying float vReadingCalm;
 
   ${valleyTerrainGLSL}
 
@@ -638,14 +640,14 @@ export const fieldVertexShader = /* glsl */ `
     vec3 simOffset = (uReducedMotion > 0.5) ? vec3(0.0) : offData.xyz;
     float spinAngle = (uReducedMotion > 0.5) ? 0.0 : offData.w;
 
-    // Gentle ambient valley wind swaying undisturbed flowers
+    // Calm, slow nocturnal breathing sway (eliminates high-frequency flicker behind text)
     float motionGate = 1.0 - step(0.5, uReducedMotion);
-    float windWave1 = sin(uTime * 1.15 + xWorld * 0.24 + zWorld * 0.21 + seedData.b);
-    float windWave2 = cos(uTime * 0.82 - xWorld * 0.16 + zWorld * 0.28 + seedData.r * 6.28);
+    float windWave1 = sin(uTime * 0.52 + xWorld * 0.20 + zWorld * 0.18 + seedData.b);
+    float windWave2 = cos(uTime * 0.38 - xWorld * 0.14 + zWorld * 0.22 + seedData.r * 6.28);
     vec3 ambientWind = vec3(
-      windWave1 * 0.085 + windWave2 * 0.04,
-      windWave1 * 0.025,
-      windWave2 * 0.075
+      windWave1 * 0.042 + windWave2 * 0.022,
+      windWave1 * 0.014,
+      windWave2 * 0.038
     ) * motionGate * (1.0 - isSkyPetal);
 
     vec3 finalPos = vec3(xWorld, baseElevation, zCam) + simOffset + ambientWind;
@@ -658,23 +660,36 @@ export const fieldVertexShader = /* glsl */ `
     float airborneAmount = clamp(dispMag / 1.2, 0.0, 1.0);
     if (isSkyPetal > 0.5) airborneAmount = 1.0;
 
-    float baseScale = mix(11.5, 25.5, pow(homeData.b, 0.82)) * (1.0 + airborneAmount * 0.20);
-    float pSize = clamp(baseScale * uPixelRatio * (18.5 / viewDepth), 1.5, 54.0 * uPixelRatio);
+    // Compute screen-space reading-corridor attenuation:
+    // Flowers remain crisp & rich along outer margins/corners while softly receding behind central text
+    vec2 ndcPos = gl_Position.xy / max(0.0001, gl_Position.w);
+    float centerBandX = 1.0 - smoothstep(0.30, 0.90, abs(ndcPos.x));
+    float centerBandY = 1.0 - smoothstep(0.68, 1.05, abs(ndcPos.y));
+    float desktopCalm = centerBandX * centerBandY;
+    float mobileCalm = mix(0.62, 0.92, 1.0 - smoothstep(0.52, 1.0, abs(ndcPos.y)));
+    float readingCalm = mix(desktopCalm, mobileCalm, uIsMobile);
+
+    // Scale down flowers on mobile for extra visual calm
+    float mobileSizeScale = mix(1.0, 0.74, uIsMobile);
+    float baseScale = mix(10.5, 23.0, pow(homeData.b, 0.85)) * mobileSizeScale * (1.0 + airborneAmount * 0.16);
+    float pSize = clamp(baseScale * uPixelRatio * (17.5 / viewDepth), 1.4, 46.0 * uPixelRatio);
     gl_PointSize = pSize;
 
-    float farFade  = smoothstep(uZFar, uZFar + 20.0, finalPos.z);
-    float nearFade = smoothstep(uZNear, uZNear - 2.2, finalPos.z);
+    float farFade  = smoothstep(uZFar, uZFar + 22.0, finalPos.z);
+    float nearFade = smoothstep(uZNear, uZNear - 2.6, finalPos.z);
     float sideFade = smoothstep(uHalfWidth, uHalfWidth - 10.0, abs(xWorld));
     float deepDropFade = smoothstep(-7.6, -5.2, simOffset.y);
 
     float skyPetalFade = 1.0;
     if (isSkyPetal > 0.5) {
-      skyPetalFade = smoothstep(0.08, 1.1, simOffset.y) * smoothstep(15.2, 12.2, simOffset.y) * 0.88;
+      skyPetalFade = smoothstep(0.08, 1.1, simOffset.y) * smoothstep(15.2, 12.2, simOffset.y) * 0.65;
     }
 
-    float windRock = sin(uTime * 1.1 + seedData.b) * 0.14 * motionGate;
+    // Soften alpha inside the reading zone and on mobile while preserving crisp edge framing
+    float readingAlphaFactor = mix(1.0, 0.38, readingCalm) * mix(1.0, 0.58, uIsMobile);
+    float windRock = sin(uTime * 0.55 + seedData.b) * 0.065 * motionGate;
 
-    vAlpha = farFade * nearFade * sideFade * deepDropFade * skyPetalFade;
+    vAlpha = farFade * nearFade * sideFade * deepDropFade * skyPetalFade * readingAlphaFactor;
     vSeed = seedData.r;
     vAngle = seedData.b + windRock + spinAngle;
     vSpin = spinAngle;
@@ -683,6 +698,7 @@ export const fieldVertexShader = /* glsl */ `
     vAirborne = max(airborneAmount, clamp(velData.w, 0.0, 1.0));
     vDepth = viewDepth;
     vPointSize = pSize;
+    vReadingCalm = readingCalm;
   }
 `;
 
@@ -698,6 +714,7 @@ export const fieldFragmentShader = /* glsl */ `
   varying float vAirborne;
   varying float vDepth;
   varying float vPointSize;
+  varying float vReadingCalm;
 
   void main() {
     if (vAlpha < 0.01) discard;
@@ -709,9 +726,9 @@ export const fieldFragmentShader = /* glsl */ `
     float s = sin(vAngle);
     vec2 p = mat2(c, -s, s, c) * uv;
 
-    // 3D petal flutter tilt when hopping, rustling, or cascading down
-    float flutterTilt = mix(1.0, 0.64 + 0.36 * abs(cos(vSpin * 0.85 + vSeed * 6.2831)), clamp(vAirborne, 0.0, 1.0));
-    p.y /= max(0.54, flutterTilt);
+    // 3D petal flutter tilt when hopping, rustling, or cascading
+    float flutterTilt = mix(1.0, 0.68 + 0.32 * abs(cos(vSpin * 0.85 + vSeed * 6.2831)), clamp(vAirborne, 0.0, 1.0));
+    p.y /= max(0.56, flutterTilt);
 
     float r = length(p);
 
@@ -726,47 +743,51 @@ export const fieldFragmentShader = /* glsl */ `
 
     float d = r - flowerRadius;
 
-    float foregroundBokeh = (1.0 - smoothstep(3.0, 9.5, vDepth)) * 0.14;
-    float aa = clamp(2.1 / max(vPointSize, 2.0), 0.045, 0.28) + foregroundBokeh;
+    // Soft optical defocus behind central reading column + gentle foreground macro bokeh
+    float foregroundBokeh = (1.0 - smoothstep(3.0, 9.5, vDepth)) * 0.16;
+    float readingBlur = vReadingCalm * 0.24;
+    float aa = clamp(2.1 / max(vPointSize, 2.0), 0.05, 0.28) + foregroundBokeh + readingBlur;
     float flowerMask = 1.0 - smoothstep(-aa, aa, d);
     if (flowerMask < 0.01) discard;
 
     // Flower center dot + soft calyx depth shading
-    float coreMask = 1.0 - smoothstep(0.11, 0.23, r);
+    float coreMask = 1.0 - smoothstep(0.11, 0.24, r);
     float calyxRing = smoothstep(0.17, 0.38, r);
-    float petalShade = 0.74 + 0.26 * calyxRing * (1.0 - 0.18 * smoothstep(0.66, 0.94, r));
+    float petalShade = 0.74 + 0.24 * calyxRing * (1.0 - 0.18 * smoothstep(0.66, 0.94, r));
 
-    // Darker, moody nocturnal valley blossom palette + #D4FF3A accents
-    vec3 duskySilver = vec3(0.35, 0.36, 0.44);
-    vec3 darkViolet  = vec3(0.32, 0.24, 0.48);
-    vec3 midnightBlu = vec3(0.23, 0.32, 0.46);
-    vec3 duskyPlum   = vec3(0.40, 0.25, 0.37);
-    vec3 restingLime = vec3(0.50, 0.63, 0.15);
-    vec3 activeLime  = vec3(0.831, 1.000, 0.227); // #D4FF3A
+    // Calm, muted nocturnal botanical palette (low eye-strain, rich mood along edges)
+    vec3 duskySilver = vec3(0.28, 0.29, 0.37);
+    vec3 darkViolet  = vec3(0.26, 0.20, 0.40);
+    vec3 midnightBlu = vec3(0.19, 0.26, 0.38);
+    vec3 duskyPlum   = vec3(0.32, 0.21, 0.31);
+    vec3 restingLime = vec3(0.38, 0.48, 0.14);
+    vec3 activeLime  = vec3(0.76, 0.92, 0.22);
 
     float hueWave = 0.5 + 0.5 * sin(vSeed * 6.28318 + vElevation * 2.8);
     vec3 darkTint = mix(darkViolet, midnightBlu, hueWave);
     darkTint = mix(darkTint, duskyPlum, smoothstep(0.62, 1.0, fract(vSeed * 4.1 + vElevation * 0.35)));
 
-    float valleyLight = mix(0.50, 0.88, vElevation);
-    vec3 petalColor = mix(duskySilver, darkTint, 0.52 + 0.18 * (1.0 - vElevation));
+    float valleyLight = mix(0.46, 0.80, vElevation);
+    vec3 petalColor = mix(duskySilver, darkTint, 0.56 + 0.16 * (1.0 - vElevation));
 
-    float isAccent = step(0.88, vSeed);
-    vec3 limeTone = mix(restingLime, activeLime, clamp(vAirborne * 0.75, 0.0, 0.75));
-    petalColor = mix(petalColor, limeTone, isAccent);
+    // Curated ~8% acid-lime accents (softer inside reading corridor, crisper along margins & on interaction)
+    float isAccent = step(0.92, vSeed);
+    float accentPresence = mix(1.0, 0.45, vReadingCalm);
+    vec3 limeTone = mix(restingLime, activeLime, clamp(vAirborne * 0.65, 0.0, 0.65));
+    petalColor = mix(petalColor, limeTone, isAccent * accentPresence);
 
-    // Moonlit shimmer on active/hopping/falling flowers so detached blooms pop visually against dark anchored hills
-    petalColor = mix(petalColor, mix(vec3(0.64, 0.62, 0.78), activeLime, 0.30), clamp(vAirborne * 0.42, 0.0, 0.42));
+    // Subtle moonlit highlight when blossoms hop or cascade
+    petalColor = mix(petalColor, mix(vec3(0.50, 0.48, 0.62), activeLime, 0.24), clamp(vAirborne * 0.34, 0.0, 0.34));
     petalColor *= petalShade * valleyLight;
 
-    vec3 darkFlowerCore = mix(vec3(0.52, 0.50, 0.56), restingLime, 0.38);
-    vec3 limeFlowerCore = vec3(0.78, 0.90, 0.42);
-    vec3 coreColor = mix(darkFlowerCore, limeFlowerCore, isAccent);
+    vec3 darkFlowerCore = mix(vec3(0.40, 0.39, 0.46), restingLime, 0.30);
+    vec3 limeFlowerCore = vec3(0.64, 0.76, 0.34);
+    vec3 coreColor = mix(darkFlowerCore, limeFlowerCore, isAccent * accentPresence);
 
-    vec3 finalColor = mix(petalColor, coreColor, coreMask * 0.88);
+    vec3 finalColor = mix(petalColor, coreColor, coreMask * 0.82);
 
-    float baseOpacity = mix(0.58, 0.80, isAccent);
-    float alpha = flowerMask * vAlpha * min(0.95, baseOpacity + vAirborne * 0.20);
+    float baseOpacity = mix(0.48, 0.66, isAccent * accentPresence);
+    float alpha = flowerMask * vAlpha * min(0.84, baseOpacity + vAirborne * 0.16);
 
     gl_FragColor = vec4(finalColor, alpha);
   }

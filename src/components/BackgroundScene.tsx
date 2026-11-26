@@ -20,9 +20,9 @@ import {
   velFragmentShader,
 } from './scene/shaders';
 
-// Desktop: 320 x 320 = 102,400 flowers | Mobile: 160 x 160 = 25,600 flowers
+// Desktop: 320 x 320 = 102,400 flowers | Mobile: 128 x 128 = 16,384 flowers (calmer density)
 const DESKTOP_TEX_SIZE = 320;
-const MOBILE_TEX_SIZE = 160;
+const MOBILE_TEX_SIZE = 128;
 
 const FIELD_HALF_WIDTH = 52;
 const FIELD_Z_FAR = -66;
@@ -526,8 +526,9 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
       uHalfWidth: { value: FIELD_HALF_WIDTH },
       uPixelRatio: { value: Math.min(gl.getPixelRatio(), 1.5) },
       uReducedMotion: { value: reducedMotion ? 1 : 0 },
+      uIsMobile: { value: isMobile ? 1 : 0 },
     }),
-    [gl, reducedMotion, simResources]
+    [gl, isMobile, reducedMotion, simResources]
   );
 
   useEffect(() => {
@@ -614,9 +615,9 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
       1 - Math.exp(-4.5 * dt)
     );
 
-    // 2. Continuous calm flight through the dense flower valley
+    // 2. Serene, calm flight through the floral valley (prevents rapid background flicker behind text)
     const prevTravel = travelRef.current;
-    const baseFlightSpeed = 1.75;
+    const baseFlightSpeed = 0.72;
     travelRef.current += (baseFlightSpeed + scrollVelocityBoost.current) * dt;
 
     // 3. Keep camera pitch nearly steady on scroll so flowers visually detach from anchored hills
@@ -762,6 +763,7 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
       state.gl.getPixelRatio(),
       1.5
     );
+    renderMat.uniforms.uIsMobile.value = isMobile ? 1 : 0;
   });
 
   return (
@@ -882,7 +884,16 @@ export function BackgroundScene() {
           />
         </Canvas>
 
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_42%,rgba(2,2,5,0.38)_100%)]" />
+        {/* Reading-corridor scrim: preserves crisp floral edges & corners while calming the central reading zone */}
+        <div
+          className="pointer-events-none absolute inset-0 hidden md:block"
+          style={{
+            background:
+              'linear-gradient(90deg, rgba(6,5,11,0.06) 0%, rgba(6,5,11,0.44) 20%, rgba(6,5,11,0.58) 50%, rgba(6,5,11,0.44) 80%, rgba(6,5,11,0.06) 100%)',
+          }}
+        />
+        {/* Extra mobile veil + gentle optical blur so single-column mobile text stays 10/10 readable */}
+        <div className="pointer-events-none absolute inset-0 bg-[#06050B]/58 backdrop-blur-[1.5px] md:hidden" />
       </div>
     </WebGLErrorBoundary>
   );

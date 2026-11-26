@@ -7,7 +7,7 @@ export function About() {
   return (
     <section
       id="about"
-      className="border-b border-white/[0.08] py-16 sm:py-24"
+      className="border-b border-white/[0.08] py-20 sm:py-28"
     >
       <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
         <SectionHeader
@@ -16,7 +16,7 @@ export function About() {
           rightMeta="LUBLIN, POLAND"
         />
 
-        <div className="mt-10 grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-14">
+        <div className="mt-8 grid grid-cols-1 items-start gap-8 lg:mt-10 lg:grid-cols-12 lg:gap-12">
           {/* Left column: Portrait / Workstation MediaSlot */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -32,33 +32,33 @@ export function About() {
             />
           </motion.div>
 
-          {/* Right column: Grounded Bio + Metadata on translucent frosted card */}
+          {/* Right column: Grounded Bio + Metadata on calm studio surface */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.35, delay: 0.05 }}
-            className="border border-white/[0.1] bg-[#0C0C12]/72 p-6 backdrop-blur-md sm:p-8 lg:col-span-7 lg:p-10"
+            className="studio-surface p-7 sm:p-10 lg:col-span-7 lg:p-12"
           >
-            <h2 className="font-display text-3xl font-bold leading-[1.05] tracking-[-0.03em] text-[#F5F5F5] sm:text-4xl">
+            <h2 className="font-display text-3xl font-bold leading-[1.08] tracking-[-0.03em] text-[#F5F5F7] sm:text-4xl">
               Sculptural precision backed by a technical foundation.
             </h2>
 
-            <p className="mt-6 text-base leading-relaxed text-[#B4B4BC] sm:text-lg sm:leading-relaxed">
+            <p className="mt-6 text-base leading-[1.68] text-[#C8C8D2] sm:text-[1.075rem]">
               {aboutData.bio}
             </p>
 
             {/* Structured fact list */}
-            <dl className="mt-9 divide-y divide-white/[0.08] border-y border-white/[0.08]">
+            <dl className="mt-10 divide-y divide-white/[0.08] border-y border-white/[0.08]">
               {aboutData.details.map((item) => (
                 <div
                   key={item.label}
-                  className="grid grid-cols-1 gap-1 py-4 sm:grid-cols-3 sm:gap-4"
+                  className="grid grid-cols-1 gap-1.5 py-4 sm:grid-cols-3 sm:gap-4"
                 >
-                  <dt className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8E8E93]">
+                  <dt className="font-mono text-xs uppercase tracking-[0.14em] text-[#A6A6B4]">
                     {item.label}
                   </dt>
-                  <dd className="font-mono text-xs text-[#F5F5F5] sm:col-span-2 sm:text-right">
+                  <dd className="font-mono text-xs font-medium text-[#F5F5F7] sm:col-span-2 sm:text-right">
                     {item.value}
                   </dd>
                 </div>
