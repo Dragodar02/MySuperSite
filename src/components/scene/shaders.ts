@@ -183,8 +183,9 @@ export const velFragmentShader = /* glsl */ `
   uniform vec3 uClickRayOrigin;
   uniform vec3 uClickRayDir;
 
-  // Asynchronous scroll-speed upward lift
+  // Bidirectional scroll physics: scroll down -> upward lift, scroll up -> sharp downward drop
   uniform float uScrollLift;
+  uniform float uScrollDrop;
   uniform float uScrollWave;
 
   varying vec2 vUv;
@@ -261,6 +262,9 @@ export const velFragmentShader = /* glsl */ `
 
       if (uScrollLift > 0.02) {
         vel.y += uScrollLift * mix(3.5, 9.5, h2) * uDt;
+      }
+      if (uScrollDrop > 0.02) {
+        vel.y -= uScrollDrop * mix(8.0, 20.0, h2) * uDt;
       }
 
       if (onScreen && uClickTrigger > 0.5) {
@@ -340,10 +344,7 @@ export const velFragmentShader = /* glsl */ `
     }
 
     // ========================================================================
-    // 3. Scroll-Speed Upward Lift ("ті що лежать підлітають догори: швидко -> високо, повільно -> слабше")
-    // - ~28% stay rooted so the valley hills remain anchored
-    // - ~72% lying on the ground fly upward asynchronously proportional to scroll speed,
-    //   then flutter back down onto the meadow under gravity
+    // 3A. Scroll DOWN -> Upward Lift (fast scroll = high flight, slow = subtle)
     // ========================================================================
     if (uScrollLift > 0.012 && h1 >= 0.28) {
       float gustNoise = 0.5 + 0.5 * snoise(vec2(
@@ -351,14 +352,12 @@ export const velFragmentShader = /* glsl */ `
         zWorld * 0.13 - uScrollWave * 0.009
       ));
 
-      // Lightest flowers lift even on slow scroll; heavier blooms launch on fast scroll
       float weightOrder = (h1 - 0.28) / 0.72;
       float lowEdge = weightOrder * 0.52 * (1.0 - gustNoise * 0.48);
       float activation = smoothstep(lowEdge, lowEdge + 0.42, uScrollLift);
 
-      // Strongest lift on flowers currently lying on or near the ground
       float maxLiftHeight = mix(2.0, 6.8, h2);
-      float groundProximity = clamp(1.0 - offset.y / maxLiftHeight, 0.0, 1.0);
+      float groundProximity = clamp(1.0 - max(0.0, offset.y) / maxLiftHeight, 0.0, 1.0);
 
       if (activation > 0.01 && groundProximity > 0.02) {
         float upAccel =
@@ -370,7 +369,6 @@ export const velFragmentShader = /* glsl */ `
 
         vel.y += upAccel * uDt;
 
-        // Asynchronous lateral breeze scatter as blossoms fly upward
         float swirlPhase = uTime * mix(2.0, 4.2, h1) + seedData.b * 3.0;
         float scatterX = cos(swirlPhase) * mix(1.1, 3.9, seedData.r) + (h2 - 0.5) * 2.6;
         float scatterZ = sin(swirlPhase * 0.81 + h1 * 6.28) * mix(0.9, 3.1, seedData.a);
@@ -384,32 +382,89 @@ export const velFragmentShader = /* glsl */ `
     }
 
     // ========================================================================
-    // 4. Gravity Arc & Asynchronous Petal Descent Back to the Meadow
+    // 3B. Scroll UP -> Sharp Asynchronous Downward Drop ("падають різко униз")
+    // - Airborne flowers get pulled sharply down
+    // - ~72% of valley blossoms plunge asynchronously downward (while ~28% keep hills anchored)
     // ========================================================================
-    if (offset.y > 0.004 || vel.y > 0.01) {
+    if (uScrollDrop > 0.012) {
+      // Any flower currently up in the air gets pulled sharply downward
+      if (offset.y > 0.02) {
+        vel.y -= uScrollDrop * mix(28.0, 66.0, pow(h2, 0.75)) * uDt;
+        energy = max(energy, min(1.0, uScrollDrop));
+      }
+
+      if (h1 >= 0.28) {
+        float dropNoise = 0.5 + 0.5 * snoise(vec2(
+          xWorld * 0.14 - uScrollWave * 0.007,
+          zWorld * 0.14 + uScrollWave * 0.010
+        ));
+
+        float weightOrder = (h1 - 0.28) / 0.72;
+        float lowEdge = weightOrder * 0.48 * (1.0 - dropNoise * 0.50);
+        float activation = smoothstep(lowEdge, lowEdge + 0.38, uScrollDrop);
+
+        float maxDropDepth = mix(2.2, 7.2, h2);
+        float depthHeadroom = clamp(1.0 - max(0.0, -offset.y) / maxDropDepth, 0.0, 1.0);
+
+        if (activation > 0.01 && depthHeadroom > 0.02) {
+          float downAccel =
+            uScrollDrop *
+            activation *
+            depthHeadroom *
+            mix(18.0, 56.0, pow(h2, 0.75)) *
+            (0.55 + 0.90 * dropNoise);
+
+          vel.y -= downAccel * uDt;
+
+          float swirlPhase = uTime * mix(2.2, 4.5, h1) + seedData.b * 3.0;
+          float scatterX = cos(swirlPhase) * mix(1.2, 4.0, seedData.r) + (h2 - 0.5) * 2.5;
+          float scatterZ = sin(swirlPhase * 0.83 + h1 * 6.28) * mix(1.0, 3.2, seedData.a);
+          float horizBoost = activation * min(uScrollDrop, 1.5) * depthHeadroom;
+
+          vel.x += scatterX * horizBoost * uDt;
+          vel.z += scatterZ * horizBoost * uDt;
+
+          energy = max(energy, min(1.0, activation * uScrollDrop * 0.98));
+        }
+      }
+    }
+
+    // ========================================================================
+    // 4. Gravity Arc, Petal Descent & Asynchronous Buoyant Recovery
+    // ========================================================================
+    if (offset.y > 0.004 || (offset.y >= -0.004 && vel.y > 0.01)) {
       if (vel.y > 0.0) {
-        // Natural gravity slowing upward flight to a weightless apex
         vel.y -= mix(5.8, 8.6, h2) * uDt;
       } else {
-        // Asynchronous petal-like descent with individual terminal speeds & leaf sway
         vel.y -= mix(2.2, 4.4, h2) * uDt;
-        float termFall = -mix(0.68, 2.15, h2);
+        float termFall = -mix(0.68, 2.15, h2) - uScrollDrop * 9.0;
         vel.y = max(vel.y, termFall);
 
         float flutter = cos(uTime * mix(1.8, 3.6, h1) + seedData.b) * mix(0.48, 1.30, seedData.r);
         vel.x += flutter * uDt;
       }
 
-      // Soft horizontal return while airborne
       vel.xz += (-offset.xz * 1.5 - vel.xz * 2.3) * uDt;
+    } else if (offset.y < -0.004) {
+      // Dropped below resting valley level -> float back up at staggered per-flower speeds once scroll-up eases
+      float recoveryGate = 1.0 - clamp(uScrollDrop * 0.92, 0.0, 0.95);
+      float indivRiseCap = mix(0.85, 3.90, pow(h1, 1.35));
+      float desiredUpVel = min(-offset.y * mix(1.9, 4.8, h2), indivRiseCap) * recoveryGate;
+
+      float upFlutter = sin(uTime * mix(1.6, 3.2, h2) + seedData.b) * 0.65 * recoveryGate;
+      vel.x += upFlutter * uDt;
+      vel.y = mix(vel.y, desiredUpVel, 1.0 - exp(-mix(2.4, 5.0, h2) * recoveryGate * uDt));
+
+      vel.xz += (-offset.xz * mix(1.4, 3.2, h1) - vel.xz * 2.8) * uDt;
     } else {
-      // Grounded horizontal settle back onto exact stem position
-      vel.y = 0.0;
+      if (uScrollDrop < 0.015) {
+        vel.y = 0.0;
+      }
       vel.xz += (-offset.xz * 3.4 - vel.xz * 4.0) * uDt;
     }
 
     energy *= exp(-1.5 * uDt);
-    if (length(offset) < 0.004 && length(vel) < 0.008 && uScrollLift < 0.01) {
+    if (length(offset) < 0.004 && length(vel) < 0.008 && uScrollLift < 0.01 && uScrollDrop < 0.01) {
       vel = vec3(0.0);
       energy = 0.0;
     }
@@ -431,6 +486,7 @@ export const posFragmentShader = /* glsl */ `
   uniform float uTravel;
   uniform float uPrevTravel;
   uniform float uFieldDepth;
+  uniform float uScrollDrop;
 
   varying vec2 vUv;
 
@@ -490,13 +546,23 @@ export const posFragmentShader = /* glsl */ `
       return;
     }
 
+    float prevY = offset.y;
     offset += vel * uDt;
-    offset.y = clamp(offset.y, 0.0, 8.2);
+
+    // Cushion landing at y = 0 when not being actively driven downward by upward scroll
+    if (prevY > 0.0 && offset.y <= 0.0 && uScrollDrop < 0.02) {
+      offset.y = 0.0;
+    }
+    if (prevY < 0.0 && offset.y >= 0.0 && uScrollDrop < 0.02) {
+      offset.y = 0.0;
+    }
+
+    offset.y = clamp(offset.y, -7.6, 8.2);
     offset.xz = clamp(offset.xz, vec2(-14.0), vec2(14.0));
 
     // Lively axial petal spin proportional to speed
     float speedMag = length(vel);
-    if (offset.y > 0.015 || speedMag > 0.05) {
+    if (abs(offset.y) > 0.015 || speedMag > 0.05) {
       float spinRate = mix(1.0, 3.2, seedData.g) * min(0.35 + speedMag * 0.65, 3.4);
       spin = mod(spin + spinDir * spinRate * uDt, 62.831853);
     } else {
@@ -506,7 +572,7 @@ export const posFragmentShader = /* glsl */ `
       if (spin < 0.0) spin += 62.831853;
     }
 
-    if (length(offset) < 0.004 && speedMag < 0.008) {
+    if (length(offset) < 0.004 && speedMag < 0.008 && uScrollDrop < 0.01) {
       offset = vec3(0.0);
     }
 
