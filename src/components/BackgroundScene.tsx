@@ -29,8 +29,8 @@ const FIELD_Z_FAR = -66;
 const FIELD_Z_NEAR = 12.4;
 const FIELD_DEPTH = FIELD_Z_NEAR - FIELD_Z_FAR; // 78.4
 
-const HOVER_RADIUS_PX = 140; // Subtle, gentle cursor brush radius
-const CLICK_HOP_RADIUS_PX = 235; // Area of blossoms that hop gently on click
+const HOVER_RADIUS_PX = 195; // Expressive cursor wave radius
+const CLICK_HOP_RADIUS_PX = 290; // Pronounced asynchronous hop radius on click
 
 interface SceneProps {
   isMobile: boolean;
@@ -168,9 +168,11 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
 
   const simSize = isMobile ? MOBILE_TEX_SIZE : DESKTOP_TEX_SIZE;
 
-  // Gentle cursor tracking + click hop queue + scroll-down gravity state
+  // Cursor wave tracking + velocity
   const rawMousePx = useRef(new THREE.Vector2(0, 0));
   const smoothHoverPx = useRef(new THREE.Vector2(0, 0));
+  const prevHoverPx = useRef(new THREE.Vector2(0, 0));
+  const hoverVelPx = useRef(new THREE.Vector2(0, 0));
   const pointerNDC = useRef(new THREE.Vector2(0, 0));
   const pointerInside = useRef(false);
   const pointerHasMoved = useRef(false);
@@ -178,13 +180,14 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
   const hoverActiveRef = useRef(0);
   const smoothParallax = useRef(new THREE.Vector2(0, 0));
 
-  // Pending click hop impulse (consumed cleanly in next simulation frame)
+  // Pending click hop impulse
   const pendingClickPx = useRef<THREE.Vector2 | null>(null);
 
-  // Scroll tracking (signed downward delta drives gravity pull)
+  // Asynchronous scroll-down gravity state
   const lastScrollY = useRef(typeof window !== 'undefined' ? window.scrollY : 0);
   const scrollVelocityBoost = useRef(0);
   const scrollDownGravityRef = useRef(0);
+  const scrollWaveAccumRef = useRef(0);
   const smoothScrollProgress = useRef(0);
   const travelRef = useRef(0);
   const pingPongIdxRef = useRef(0);
@@ -211,6 +214,7 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
 
       if (!pointerHasMoved.current) {
         smoothHoverPx.current.set(px, py);
+        prevHoverPx.current.set(px, py);
         pointerHasMoved.current = true;
       }
 
@@ -222,7 +226,6 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     };
 
     const handlePointerDown = (e: PointerEvent) => {
-      // Skip hop when focusing form inputs so typing remains calm
       const target = e.target as HTMLElement | null;
       if (target?.closest('input, textarea, select')) return;
 
@@ -433,6 +436,7 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
         uViewProjMatrix: { value: new THREE.Matrix4() },
         uViewportSize: { value: new THREE.Vector2(1920, 1080) },
         uHoverCenterPx: { value: new THREE.Vector2(-9999, -9999) },
+        uHoverVelPx: { value: new THREE.Vector2(0, 0) },
         uHoverRadiusPx: { value: HOVER_RADIUS_PX },
         uHoverActive: { value: 0 },
         uHoverRayOrigin: { value: new THREE.Vector3() },
@@ -443,6 +447,7 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
         uClickRayOrigin: { value: new THREE.Vector3() },
         uClickRayDir: { value: new THREE.Vector3(0, 0, -1) },
         uScrollGravity: { value: 0 },
+        uScrollWave: { value: 0 },
       },
     });
 
@@ -552,24 +557,24 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
 
     const dt = Math.min(delta, 0.05);
 
-    // 1. Scroll tracking: downward scroll triggers gravitational pull on blossoms
+    // 1. Scroll tracking: downward scroll drives asynchronous gravity cascade
     const currentScrollY = window.scrollY;
     const signedScrollDelta = currentScrollY - lastScrollY.current;
     lastScrollY.current = currentScrollY;
 
     if (signedScrollDelta > 0) {
-      // Scrolling DOWN -> accumulate gravity pull
       scrollDownGravityRef.current = Math.min(
-        1.55,
-        scrollDownGravityRef.current + signedScrollDelta * 0.0042
+        2.15,
+        scrollDownGravityRef.current + signedScrollDelta * 0.0078
       );
+      scrollWaveAccumRef.current += signedScrollDelta;
     }
-    scrollDownGravityRef.current *= Math.exp(-4.0 * dt);
-    if (scrollDownGravityRef.current < 0.003) {
+    scrollDownGravityRef.current *= Math.exp(-2.85 * dt);
+    if (scrollDownGravityRef.current < 0.004) {
       scrollDownGravityRef.current = 0;
     }
 
-    const targetBoost = Math.min(Math.abs(signedScrollDelta) * 0.05, 2.4);
+    const targetBoost = Math.min(Math.abs(signedScrollDelta) * 0.035, 1.8);
     scrollVelocityBoost.current = THREE.MathUtils.lerp(
       scrollVelocityBoost.current,
       targetBoost,
@@ -591,7 +596,7 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     const baseFlightSpeed = 1.75;
     travelRef.current += (baseFlightSpeed + scrollVelocityBoost.current) * dt;
 
-    // 3. Subtle camera mouse parallax + scroll pitch modulation
+    // 3. Keep camera pitch nearly steady on scroll so flowers visually detach from anchored hills
     const targetPx = pointerInside.current ? pointerNDC.current.x : 0;
     const targetPy = pointerInside.current ? pointerNDC.current.y : 0;
     const parallaxLerp = 1 - Math.exp(-3.6 * dt);
@@ -611,11 +616,11 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     const camY =
       3.25 +
       smoothParallax.current.y * 0.24 +
-      smoothScrollProgress.current * 0.5;
+      smoothScrollProgress.current * 0.14;
     const lookY =
       -1.75 +
       smoothParallax.current.y * 0.32 -
-      smoothScrollProgress.current * 0.55;
+      smoothScrollProgress.current * 0.14;
 
     state.camera.position.set(camX, camY, 13.0);
     state.camera.lookAt(camX * 0.3, lookY, -22.0);
@@ -626,14 +631,23 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
       state.camera.matrixWorldInverse
     );
 
-    // 4. Gentle cursor hover brush (only subtle reaction while moving cursor)
+    // 4. Expressive cursor brush wave + cursor velocity tracking
     if (!isMobile && pointerHasMoved.current) {
-      const hoverLerp = 1 - Math.pow(1 - 0.14, dt * 60);
+      prevHoverPx.current.copy(smoothHoverPx.current);
+      const hoverLerp = 1 - Math.pow(1 - 0.12, dt * 60);
       smoothHoverPx.current.lerp(rawMousePx.current, hoverLerp);
 
-      pointerMoveActivityRef.current *= Math.exp(-4.5 * dt);
-      const targetHover =
-        pointerInside.current ? pointerMoveActivityRef.current : 0;
+      const vx = (smoothHoverPx.current.x - prevHoverPx.current.x) / Math.max(dt, 0.001);
+      const vy = (smoothHoverPx.current.y - prevHoverPx.current.y) / Math.max(dt, 0.001);
+      hoverVelPx.current.set(
+        THREE.MathUtils.clamp(vx, -1600, 1600),
+        THREE.MathUtils.clamp(vy, -1600, 1600)
+      );
+
+      pointerMoveActivityRef.current *= Math.exp(-2.8 * dt);
+      const targetHover = pointerInside.current
+        ? Math.max(0.28, pointerMoveActivityRef.current)
+        : 0;
 
       hoverActiveRef.current = THREE.MathUtils.lerp(
         hoverActiveRef.current,
@@ -648,9 +662,10 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
       hoverRaycaster.setFromCamera(tempNDCVec, state.camera);
     } else {
       hoverActiveRef.current = 0;
+      hoverVelPx.current.set(0, 0);
     }
 
-    // 5. Consume pending click hop event (works on both desktop & mobile tap!)
+    // 5. Consume pending click hop event
     const clickPx = pendingClickPx.current;
     let clickTriggered = 0;
     if (clickPx) {
@@ -678,6 +693,7 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     velUniforms.uViewportSize.value.set(window.innerWidth, window.innerHeight);
 
     velUniforms.uHoverCenterPx.value.copy(smoothHoverPx.current);
+    velUniforms.uHoverVelPx.value.copy(hoverVelPx.current);
     velUniforms.uHoverRadiusPx.value = HOVER_RADIUS_PX;
     velUniforms.uHoverActive.value = isMobile ? 0 : hoverActiveRef.current;
     velUniforms.uHoverRayOrigin.value.copy(hoverRaycaster.ray.origin);
@@ -691,6 +707,7 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     velUniforms.uClickRadiusPx.value = CLICK_HOP_RADIUS_PX;
     velUniforms.uClickTrigger.value = clickTriggered;
     velUniforms.uScrollGravity.value = scrollDownGravityRef.current;
+    velUniforms.uScrollWave.value = scrollWaveAccumRef.current;
 
     const prevRenderTarget = state.gl.getRenderTarget();
 

@@ -63,7 +63,7 @@ export const skyFragmentShader = /* glsl */ `
   varying vec2 vUv;
 
   void main() {
-    float y = clamp(vUv.y + uPitchShift * 0.08, 0.0, 1.0);
+    float y = clamp(vUv.y + uPitchShift * 0.04, 0.0, 1.0);
 
     vec3 zenithColor = vec3(0.088, 0.044, 0.176);   // #160B2D
     vec3 upperMid    = vec3(0.042, 0.022, 0.094);   // #0B0618
@@ -134,7 +134,10 @@ export const starFragmentShader = /* glsl */ `
 `;
 
 // ============================================================================
-// GPGPU SIMULATION SHADERS (Gentle Hover + Click Hop + Scroll-Down Gravity)
+// GPGPU SIMULATION SHADERS
+// - Expressive cursor brush wave (no tornado)
+// - Lively asynchronous click hop ("стрибок")
+// - Asynchronous cascading scroll-down gravity (anchored stems + staggered rain)
 // ============================================================================
 
 export const simQuadVertexShader = /* glsl */ `
@@ -165,22 +168,24 @@ export const velFragmentShader = /* glsl */ `
   uniform mat4 uViewProjMatrix;
   uniform vec2 uViewportSize;
 
-  // Subtle hover brush (no hurricane)
+  // Responsive cursor wave (no hurricane)
   uniform vec2 uHoverCenterPx;
+  uniform vec2 uHoverVelPx;
   uniform float uHoverRadiusPx;
   uniform float uHoverActive;
   uniform vec3 uHoverRayOrigin;
   uniform vec3 uHoverRayDir;
 
-  // Click gentle hop impulse
+  // Click hop burst
   uniform vec2 uClickCenterPx;
   uniform float uClickRadiusPx;
   uniform float uClickTrigger;
   uniform vec3 uClickRayOrigin;
   uniform vec3 uClickRayDir;
 
-  // Scroll-down gravity surge
+  // Asynchronous scroll-down gravity
   uniform float uScrollGravity;
+  uniform float uScrollWave;
 
   varying vec2 vUv;
 
@@ -194,7 +199,7 @@ export const velFragmentShader = /* glsl */ `
 
     if (uInit > 0.5) {
       if (isSkyPetal > 0.5) {
-        gl_FragColor = vec4(0.0, -mix(0.38, 0.82, seedData.g), 0.0, 1.0);
+        gl_FragColor = vec4(0.0, -mix(0.38, 0.85, seedData.g), 0.0, 1.0);
       } else {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
       }
@@ -207,7 +212,7 @@ export const velFragmentShader = /* glsl */ `
 
     if (wrappedZ) {
       if (isSkyPetal > 0.5) {
-        gl_FragColor = vec4(0.0, -mix(0.38, 0.82, seedData.g), 0.0, 1.0);
+        gl_FragColor = vec4(0.0, -mix(0.38, 0.85, seedData.g), 0.0, 1.0);
       } else {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
       }
@@ -229,7 +234,11 @@ export const velFragmentShader = /* glsl */ `
 
     vec3 curPos = vec3(xWorld, homeY, zCam) + offset;
 
-    // Project particle to screen space for hover brush & click hop checks
+    // Independent per-particle hashes so neighboring flowers never move in lockstep
+    float h1 = fract(seedData.r * 17.371 + seedData.a * 43.119);
+    float h2 = fract(seedData.g * 29.833 + seedData.b * 11.707);
+
+    // Project particle to screen space
     vec4 clipPos = uViewProjMatrix * vec4(curPos, 1.0);
     bool onScreen = clipPos.w > 0.25;
     vec2 screenPx = vec2(-99999.0);
@@ -240,27 +249,25 @@ export const velFragmentShader = /* glsl */ `
 
     // Autonomous ambient sky-drifting petals (~1.5% of population)
     if (isSkyPetal > 0.5) {
-      float swayFreq = mix(1.2, 2.5, seedData.b * 0.15);
-      float swayAmp  = mix(0.32, 0.78, seedData.r);
+      float swayFreq = mix(1.2, 2.6, h1);
+      float swayAmp  = mix(0.35, 0.88, seedData.r);
       float targetVx = cos(uTime * swayFreq + seedData.a * 6.28318) * swayAmp;
-      float targetVz = sin(uTime * swayFreq * 0.8 + seedData.r * 6.28318) * (swayAmp * 0.6);
-      float baseFall = -mix(0.38, 0.82, seedData.g);
+      float targetVz = sin(uTime * swayFreq * 0.8 + seedData.r * 6.28318) * (swayAmp * 0.65);
+      float baseFall = -mix(0.38, 0.92, seedData.g);
 
       vel.x = mix(vel.x, targetVx, 1.0 - exp(-2.2 * uDt));
       vel.z = mix(vel.z, targetVz, 1.0 - exp(-2.2 * uDt));
       vel.y = mix(vel.y, baseFall, 1.0 - exp(-2.0 * uDt));
 
-      // Scroll-down gravity also accelerates falling sky petals
       if (uScrollGravity > 0.01) {
-        vel.y -= uScrollGravity * mix(5.0, 10.5, seedData.g) * uDt;
+        vel.y -= uScrollGravity * mix(6.0, 18.0, h2) * uDt;
       }
 
-      // Click hop also gives nearby sky petals a playful upward bounce
       if (onScreen && uClickTrigger > 0.5) {
         float dClick = length(screenPx - uClickCenterPx);
         if (dClick < uClickRadiusPx) {
-          float wClick = pow(1.0 - dClick / uClickRadiusPx, 1.35);
-          vel.y += mix(2.0, 3.4, seedData.g) * wClick;
+          float wClick = pow(1.0 - dClick / uClickRadiusPx, 1.25);
+          vel.y += mix(4.2, 7.8, seedData.g) * wClick;
         }
       }
 
@@ -270,13 +277,13 @@ export const velFragmentShader = /* glsl */ `
 
     // ========================================================================
     // MEADOW BLOSSOM PHYSICS:
-    // 1. Subtle gentle reaction to cursor hover (soft meadow brush, no vortex)
+    // 1. Expressive, clearly noticeable cursor move wave (parting + buoyant lift)
     // ========================================================================
     if (onScreen && uHoverActive > 0.01) {
       float dHover = length(screenPx - uHoverCenterPx);
       if (dHover < uHoverRadiusPx) {
         float u = clamp(dHover / uHoverRadiusPx, 0.0, 1.0);
-        float softFalloff = (1.0 - u) * (1.0 - u) * uHoverActive;
+        float falloff = (1.0 - u) * (1.0 - u * 0.55) * uHoverActive;
 
         float camDist = length(curPos - uHoverRayOrigin);
         vec3 hoverPt = uHoverRayOrigin + uHoverRayDir * camDist;
@@ -286,26 +293,30 @@ export const velFragmentShader = /* glsl */ `
           ? (relXZ / rXZ)
           : vec2(cos(seedData.b), sin(seedData.b));
 
-        // Gentle parting nudge & whisper-light bob
-        float maxHoverDisp = clamp(1.0 - length(offset.xz) / 0.85, 0.0, 1.0);
-        vel.xz += pushDir * (3.2 * softFalloff * maxHoverDisp * uDt);
+        // Cursor motion speed boosts the wave naturally when sweeping across flowers
+        float mouseSpeedBoost = 1.0 + clamp(length(uHoverVelPx) / 900.0, 0.0, 1.6);
+        vec2 breezeDrag = vec2(uHoverVelPx.x, -uHoverVelPx.y) * 0.0032;
 
-        float maxHoverLift = clamp(1.0 - offset.y / 0.42, 0.0, 1.0);
-        vel.y += 2.1 * softFalloff * maxHoverLift * uDt;
+        // Asynchronous per-flower response so some blooms rustle far while others bob lightly
+        float responsiveness = mix(0.45, 1.55, h1) * mouseSpeedBoost;
+        float horizCap = clamp(1.0 - length(offset.xz) / 2.8, 0.0, 1.0);
+        vel.xz += (pushDir * (14.5 * responsiveness) + breezeDrag * 9.0) * falloff * horizCap * uDt;
 
-        energy = max(energy, softFalloff * 0.45);
+        float liftCap = clamp(1.0 - offset.y / mix(0.9, 2.4, h2), 0.0, 1.0);
+        vel.y += mix(6.5, 14.5, seedData.g) * mouseSpeedBoost * falloff * liftCap * uDt;
+
+        energy = max(energy, min(1.0, falloff * 0.95));
       }
     }
 
     // ========================================================================
-    // 2. Click Interaction: Gentle buoyant hop ("легенький стрибок")
+    // 2. Click Interaction: Pronounced, asynchronous blossom hop ("стрибок")
     // ========================================================================
     if (onScreen && uClickTrigger > 0.5) {
       float dClick = length(screenPx - uClickCenterPx);
       if (dClick < uClickRadiusPx) {
         float u = clamp(dClick / uClickRadiusPx, 0.0, 1.0);
-        // Smooth bell curve so center hops highest and edges hop softly
-        float hopWeight = (1.0 - u) * (1.0 - u * 0.65);
+        float hopWeight = pow(1.0 - u, 1.15);
 
         float camDist = length(curPos - uClickRayOrigin);
         vec3 clickPt = uClickRayOrigin + uClickRayDir * camDist;
@@ -314,64 +325,101 @@ export const velFragmentShader = /* glsl */ `
         vec2 radDir = (rXZ > 0.001)
           ? (relXZ / rXZ)
           : vec2(cos(seedData.b), sin(seedData.b));
+        vec2 tangDir = vec2(-radDir.y, radDir.x);
 
-        // Buoyant upward hop impulse + slight organic outward bloom
-        float jumpImpulse = mix(2.25, 3.85, seedData.g) * hopWeight;
+        // Wide per-flower jump spread so they leap in a lively asynchronous fountain
+        float jumpImpulse = mix(4.2, 9.8, pow(h2, 0.72)) * hopWeight;
         vel.y = max(vel.y, 0.0) + jumpImpulse;
-        vel.xz += radDir * (mix(0.35, 0.95, seedData.r) * hopWeight);
+
+        float radialPop = mix(1.4, 4.3, h1) * hopWeight;
+        float sideJitter = (seedData.a - 0.5) * 3.2 * hopWeight;
+        vel.xz += radDir * radialPop + tangDir * sideJitter;
 
         energy = 1.0;
       }
     }
 
     // ========================================================================
-    // 3. Scroll-Down Gravity ("коли гортаю униз — піддаються гравітації")
+    // 3. ASYNCHRONOUS Scroll-Down Gravity Cascade
+    // - ~30% anchored stems stay on the hills so the ground NEVER moves as a block
+    // - ~70% detach asynchronously in spatial noise pockets & varied weights/flutters
     // ========================================================================
     if (uScrollGravity > 0.01) {
-      // Staggered per-flower weight so blossoms cascade down organically
-      float petalWeight = mix(6.5, 15.5, pow(seedData.g, 0.9));
-      float depthGuard = clamp(1.0 - (-offset.y) / 3.8, 0.0, 1.0);
-      vel.y -= uScrollGravity * petalWeight * depthGuard * uDt;
-
-      // Subtle aerodynamic flutter as gravity pulls them downward
-      float flutterX = cos(uTime * mix(1.8, 3.2, seedData.r) + seedData.b) * 0.85;
-      float flutterZ = sin(uTime * mix(1.5, 2.8, seedData.a) + seedData.r * 6.28) * 0.65;
-      vel.x += flutterX * uScrollGravity * uDt;
-      vel.z += flutterZ * uScrollGravity * uDt;
-
-      energy = max(energy, min(1.0, uScrollGravity * 0.85));
-    }
-
-    // ========================================================================
-    // 4. Vertical Gravity / Petal Settling & Elastic Meadow Recovery
-    // ========================================================================
-    if (offset.y > 0.004 || vel.y > 0.01) {
-      if (vel.y > 0.0) {
-        // Ascending phase of hop -> clean ballistic gravity arc
-        vel.y -= 6.6 * uDt;
+      if (h1 < 0.30) {
+        // Anchored reference stems: only a tiny gentle nod so the valley hills stay solid
+        float stemBow = clamp(1.0 - (-offset.y) / 0.22, 0.0, 1.0);
+        vel.y -= uScrollGravity * 2.2 * stemBow * uDt;
       } else {
-        // Descending phase -> light petal air-resistance + gentle side flutter
-        vel.y -= 3.4 * uDt;
-        float maxFallSpeed = -mix(1.05, 1.95, seedData.g) - uScrollGravity * 3.5;
-        vel.y = max(vel.y, maxFallSpeed);
+        // Rolling spatial turbulence pockets across the valley
+        float patchNoise = 0.5 + 0.5 * snoise(vec2(
+          xWorld * 0.13 + uScrollWave * 0.007,
+          zWorld * 0.13 - uScrollWave * 0.010
+        ));
 
-        float sway = cos(uTime * mix(1.8, 3.0, seedData.r) + seedData.b) * 0.45;
-        vel.x += sway * uDt;
+        // Staggered detachment threshold: loose petals drop immediately, others follow in waves
+        float detachEase = (h1 - 0.30) / 0.70; // 0..1
+        float threshold = detachEase * 0.65 * (1.0 - patchNoise * 0.65);
+
+        if (uScrollGravity > threshold) {
+          float excess = uScrollGravity - threshold;
+          // 5x variation in fall weight + spatial pocket boost
+          float indivGravity = mix(9.0, 38.0, pow(h2, 1.35)) * (0.45 + 1.05 * patchNoise);
+          float maxDropDepth = mix(1.8, 7.2, h2);
+          float depthGuard = clamp(1.0 - (-offset.y) / maxDropDepth, 0.0, 1.0);
+
+          vel.y -= excess * indivGravity * depthGuard * uDt;
+
+          // Strong individual lateral air-tumble so falling blossoms crisscross asynchronously
+          float swirlPhase = uTime * mix(2.0, 4.4, h1) + seedData.b * 3.0;
+          float driftX = cos(swirlPhase) * mix(1.2, 3.8, seedData.r) + (h2 - 0.5) * 2.2;
+          float driftZ = sin(swirlPhase * 0.83 + h1 * 6.28) * mix(1.0, 3.2, seedData.a);
+
+          vel.x += driftX * min(excess, 1.2) * uDt;
+          vel.z += driftZ * min(excess, 1.2) * uDt;
+
+          energy = max(energy, min(1.0, excess * 1.1));
+        }
       }
-    } else if (offset.y < -0.004) {
-      // Pulled below resting valley height by scroll-down gravity:
-      // smoothly float back up to homeY as soon as scrolling eases
-      float recoveryGate = 1.0 - clamp(uScrollGravity * 0.85, 0.0, 0.90);
-      float springK = mix(5.0, 7.6, seedData.r) * recoveryGate;
-      float dampK   = 4.4;
-      vel.y += (-offset.y * springK - vel.y * dampK) * uDt;
     }
 
-    // Horizontal spring-damper gently returning parted/hopped blossoms to their stem
-    vel.xz += (-offset.xz * 3.2 - vel.xz * 3.8) * uDt;
+    // ========================================================================
+    // 4. Asynchronous Settling & Individual-Speed Buoyant Recovery
+    // ========================================================================
+    if (offset.y > 0.005 || vel.y > 0.01) {
+      if (vel.y > 0.0) {
+        // Crisp upward arc after click hop / cursor lift
+        vel.y -= mix(6.2, 8.8, h2) * uDt;
+      } else {
+        // Asynchronous petal-like descent with individual terminal speeds & leaf sway
+        vel.y -= mix(2.4, 4.6, h2) * uDt;
+        float termFall = -mix(0.75, 2.25, h2) - uScrollGravity * 4.0;
+        vel.y = max(vel.y, termFall);
 
-    // Decay visual energy smoothly back to zero at rest
-    energy *= exp(-1.8 * uDt);
+        float flutter = cos(uTime * mix(1.8, 3.6, h1) + seedData.b) * mix(0.45, 1.25, seedData.r);
+        vel.x += flutter * uDt;
+      }
+
+      // Soft horizontal return while airborne
+      vel.xz += (-offset.xz * 1.6 - vel.xz * 2.4) * uDt;
+    } else if (offset.y < -0.005) {
+      // Below resting valley height (dropped by scroll-down gravity):
+      // Each flower floats back up at its OWN capped terminal buoyancy speed so they arrive at staggered times!
+      float recoveryGate = 1.0 - clamp(uScrollGravity * 0.90, 0.0, 0.94);
+      float indivRiseCap = mix(0.85, 3.85, pow(h1, 1.35));
+      float desiredUpVel = min(-offset.y * mix(1.8, 4.6, h2), indivRiseCap) * recoveryGate;
+
+      // Gentle upward flutter as they drift back up like reverse petals
+      float upFlutter = sin(uTime * mix(1.6, 3.2, h2) + seedData.b) * 0.65 * recoveryGate;
+      vel.x += upFlutter * uDt;
+      vel.y = mix(vel.y, desiredUpVel, 1.0 - exp(-mix(2.2, 4.8, h2) * recoveryGate * uDt));
+
+      vel.xz += (-offset.xz * mix(1.4, 3.2, h1) - vel.xz * 2.8) * uDt;
+    } else {
+      // Grounded horizontal settle
+      vel.xz += (-offset.xz * 3.4 - vel.xz * 4.0) * uDt;
+    }
+
+    energy *= exp(-1.5 * uDt);
     if (length(offset) < 0.004 && length(vel) < 0.008 && uScrollGravity < 0.01) {
       vel = vec3(0.0);
       energy = 0.0;
@@ -457,18 +505,22 @@ export const posFragmentShader = /* glsl */ `
     float prevY = offset.y;
     offset += vel * uDt;
 
-    // Cushion hop landing smoothly at ground y = 0 when scroll-gravity is not pulling below ground
-    if (prevY > 0.0 && offset.y <= 0.0 && uScrollGravity < 0.025) {
+    // Smooth touchdown at ground y = 0 when landing from an upward hop
+    if (prevY > 0.0 && offset.y <= 0.0 && uScrollGravity < 0.02) {
+      offset.y = 0.0;
+    }
+    // Smooth arrival at ground y = 0 when rising back from scroll-down drop
+    if (prevY < 0.0 && offset.y >= 0.0 && uScrollGravity < 0.02) {
       offset.y = 0.0;
     }
 
-    offset.y = clamp(offset.y, -4.0, 5.5);
-    offset.xz = clamp(offset.xz, vec2(-10.0), vec2(10.0));
+    offset.y = clamp(offset.y, -7.8, 7.5);
+    offset.xz = clamp(offset.xz, vec2(-14.0), vec2(14.0));
 
-    // Gentle axial spin while hopping or falling under scroll-gravity, easing back to rest
+    // Lively axial petal spin proportional to speed
     float speedMag = length(vel);
     if (abs(offset.y) > 0.02 || speedMag > 0.05) {
-      float spinRate = mix(0.8, 2.4, seedData.g) * min(speedMag * 0.55, 2.2);
+      float spinRate = mix(1.0, 3.2, seedData.g) * min(0.35 + speedMag * 0.65, 3.4);
       spin = mod(spin + spinDir * spinRate * uDt, 62.831853);
     } else {
       if (spin > 31.415926) spin -= 62.831853;
@@ -559,16 +611,18 @@ export const fieldVertexShader = /* glsl */ `
     gl_Position = projectionMatrix * mvPosition;
 
     float viewDepth = max(1.2, -mvPosition.z);
-    float airborneAmount = clamp(abs(simOffset.y) / 1.1, 0.0, 1.0);
+    float dispMag = length(simOffset);
+    float airborneAmount = clamp(dispMag / 1.2, 0.0, 1.0);
     if (isSkyPetal > 0.5) airborneAmount = 1.0;
 
-    float baseScale = mix(11.5, 25.5, pow(homeData.b, 0.82)) * (1.0 + airborneAmount * 0.15);
+    float baseScale = mix(11.5, 25.5, pow(homeData.b, 0.82)) * (1.0 + airborneAmount * 0.20);
     float pSize = clamp(baseScale * uPixelRatio * (18.5 / viewDepth), 1.5, 54.0 * uPixelRatio);
     gl_PointSize = pSize;
 
     float farFade  = smoothstep(uZFar, uZFar + 20.0, finalPos.z);
     float nearFade = smoothstep(uZNear, uZNear - 2.2, finalPos.z);
     float sideFade = smoothstep(uHalfWidth, uHalfWidth - 10.0, abs(xWorld));
+    float deepDropFade = smoothstep(-7.6, -5.2, simOffset.y);
 
     float skyPetalFade = 1.0;
     if (isSkyPetal > 0.5) {
@@ -577,7 +631,7 @@ export const fieldVertexShader = /* glsl */ `
 
     float windRock = sin(uTime * 1.1 + seedData.b) * 0.14 * motionGate;
 
-    vAlpha = farFade * nearFade * sideFade * skyPetalFade;
+    vAlpha = farFade * nearFade * sideFade * deepDropFade * skyPetalFade;
     vSeed = seedData.r;
     vAngle = seedData.b + windRock + spinAngle;
     vSpin = spinAngle;
@@ -612,9 +666,9 @@ export const fieldFragmentShader = /* glsl */ `
     float s = sin(vAngle);
     vec2 p = mat2(c, -s, s, c) * uv;
 
-    // Subtle 3D petal flutter foreshortening when hopping or falling
-    float flutterTilt = mix(1.0, 0.70 + 0.30 * abs(cos(vSpin * 0.75 + vSeed * 6.2831)), clamp(vAirborne, 0.0, 1.0));
-    p.y /= max(0.58, flutterTilt);
+    // 3D petal flutter tilt when hopping, rustling, or cascading down
+    float flutterTilt = mix(1.0, 0.64 + 0.36 * abs(cos(vSpin * 0.85 + vSeed * 6.2831)), clamp(vAirborne, 0.0, 1.0));
+    p.y /= max(0.54, flutterTilt);
 
     float r = length(p);
 
@@ -639,7 +693,7 @@ export const fieldFragmentShader = /* glsl */ `
     float calyxRing = smoothstep(0.17, 0.38, r);
     float petalShade = 0.74 + 0.26 * calyxRing * (1.0 - 0.18 * smoothstep(0.66, 0.94, r));
 
-    // Darker, moody nocturnal valley blossom palette + muted #D4FF3A accents
+    // Darker, moody nocturnal valley blossom palette + #D4FF3A accents
     vec3 duskySilver = vec3(0.35, 0.36, 0.44);
     vec3 darkViolet  = vec3(0.32, 0.24, 0.48);
     vec3 midnightBlu = vec3(0.23, 0.32, 0.46);
@@ -655,21 +709,21 @@ export const fieldFragmentShader = /* glsl */ `
     vec3 petalColor = mix(duskySilver, darkTint, 0.52 + 0.18 * (1.0 - vElevation));
 
     float isAccent = step(0.88, vSeed);
-    vec3 limeTone = mix(restingLime, activeLime, clamp(vAirborne * 0.65, 0.0, 0.65));
+    vec3 limeTone = mix(restingLime, activeLime, clamp(vAirborne * 0.75, 0.0, 0.75));
     petalColor = mix(petalColor, limeTone, isAccent);
 
-    // Subtle moonlit highlight when blossoms hop or fall
-    petalColor = mix(petalColor, mix(vec3(0.56, 0.54, 0.68), activeLime, 0.28), clamp(vAirborne * 0.30, 0.0, 0.30));
+    // Moonlit shimmer on active/hopping/falling flowers so detached blooms pop visually against dark anchored hills
+    petalColor = mix(petalColor, mix(vec3(0.64, 0.62, 0.78), activeLime, 0.30), clamp(vAirborne * 0.42, 0.0, 0.42));
     petalColor *= petalShade * valleyLight;
 
     vec3 darkFlowerCore = mix(vec3(0.52, 0.50, 0.56), restingLime, 0.38);
-    vec3 limeFlowerCore = vec3(0.76, 0.88, 0.42);
+    vec3 limeFlowerCore = vec3(0.78, 0.90, 0.42);
     vec3 coreColor = mix(darkFlowerCore, limeFlowerCore, isAccent);
 
     vec3 finalColor = mix(petalColor, coreColor, coreMask * 0.88);
 
     float baseOpacity = mix(0.58, 0.80, isAccent);
-    float alpha = flowerMask * vAlpha * min(0.92, baseOpacity + vAirborne * 0.15);
+    float alpha = flowerMask * vAlpha * min(0.95, baseOpacity + vAirborne * 0.20);
 
     gl_FragColor = vec4(finalColor, alpha);
   }
