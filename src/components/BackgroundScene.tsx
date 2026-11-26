@@ -183,10 +183,10 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
   // Pending click hop impulse
   const pendingClickPx = useRef<THREE.Vector2 | null>(null);
 
-  // Asynchronous scroll-down gravity state
+  // Speed-proportional scroll upward lift state
   const lastScrollY = useRef(typeof window !== 'undefined' ? window.scrollY : 0);
   const scrollVelocityBoost = useRef(0);
-  const scrollDownGravityRef = useRef(0);
+  const scrollLiftRef = useRef(0);
   const scrollWaveAccumRef = useRef(0);
   const smoothScrollProgress = useRef(0);
   const travelRef = useRef(0);
@@ -446,7 +446,7 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
         uClickTrigger: { value: 0 },
         uClickRayOrigin: { value: new THREE.Vector3() },
         uClickRayDir: { value: new THREE.Vector3(0, 0, -1) },
-        uScrollGravity: { value: 0 },
+        uScrollLift: { value: 0 },
         uScrollWave: { value: 0 },
       },
     });
@@ -467,7 +467,6 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
         uTravel: { value: 0 },
         uPrevTravel: { value: 0 },
         uFieldDepth: { value: FIELD_DEPTH },
-        uScrollGravity: { value: 0 },
       },
     });
 
@@ -557,21 +556,27 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
 
     const dt = Math.min(delta, 0.05);
 
-    // 1. Scroll tracking: downward scroll drives asynchronous gravity cascade
+    // 1. Scroll speed -> upward blossom lift (fast scroll = strong high lift, slow scroll = gentle weak lift)
     const currentScrollY = window.scrollY;
     const signedScrollDelta = currentScrollY - lastScrollY.current;
     lastScrollY.current = currentScrollY;
 
-    if (signedScrollDelta > 0) {
-      scrollDownGravityRef.current = Math.min(
-        2.15,
-        scrollDownGravityRef.current + signedScrollDelta * 0.0078
+    const absDelta = Math.abs(signedScrollDelta);
+    if (absDelta > 0) {
+      // Non-linear speed curve: slow scroll stays subtle, fast scroll launches blossoms high upward
+      const speedPxPerSec = Math.min(absDelta / Math.max(dt, 0.008), 4600);
+      const normSpeed = speedPxPerSec / 1950;
+      const curvedLift = Math.min(2.3, Math.pow(normSpeed, 1.38));
+
+      scrollLiftRef.current = Math.max(
+        scrollLiftRef.current,
+        THREE.MathUtils.lerp(scrollLiftRef.current, curvedLift, 0.65)
       );
-      scrollWaveAccumRef.current += signedScrollDelta;
+      scrollWaveAccumRef.current += absDelta;
     }
-    scrollDownGravityRef.current *= Math.exp(-2.85 * dt);
-    if (scrollDownGravityRef.current < 0.004) {
-      scrollDownGravityRef.current = 0;
+    scrollLiftRef.current *= Math.exp(-5.8 * dt);
+    if (scrollLiftRef.current < 0.004) {
+      scrollLiftRef.current = 0;
     }
 
     const targetBoost = Math.min(Math.abs(signedScrollDelta) * 0.035, 1.8);
@@ -706,7 +711,7 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     }
     velUniforms.uClickRadiusPx.value = CLICK_HOP_RADIUS_PX;
     velUniforms.uClickTrigger.value = clickTriggered;
-    velUniforms.uScrollGravity.value = scrollDownGravityRef.current;
+    velUniforms.uScrollLift.value = scrollLiftRef.current;
     velUniforms.uScrollWave.value = scrollWaveAccumRef.current;
 
     const prevRenderTarget = state.gl.getRenderTarget();
@@ -720,7 +725,6 @@ function GPGPUFlowerValley({ isMobile, reducedMotion }: SceneProps) {
     posUniforms.uDt.value = dt;
     posUniforms.uTravel.value = travelRef.current;
     posUniforms.uPrevTravel.value = prevTravel;
-    posUniforms.uScrollGravity.value = scrollDownGravityRef.current;
 
     state.gl.setRenderTarget(simResources.rtOffset[writeIdx]);
     state.gl.render(simResources.posScene, simResources.orthoCam);
